@@ -13,42 +13,35 @@ def create_generator(z: int = 128):
     noise_shape = (z,)
     model = Sequential()
 
-    # noise_shape -> 2560
-    model.add(Dense(units=2560, input_shape=noise_shape))
+    # noise_shape -> 240
+    model.add(Dense(units=240, input_shape=noise_shape))
     model.add(LeakyReLU(0.2))
     model.add(BatchNormalization())
 
-    # 2560 -> 2560*3645=9331200
-    model.add(Dense(2560*3645))
+    # 240 -> 240*240=57600
+    model.add(Dense(240*240))
     model.add(LeakyReLU(0.2))
     model.add(BatchNormalization())
 
-    # 9331200 -> 135*135*512
-    model.add(Reshape((135, 135, 512)))
+    # 57600 -> 30*30*64
+    model.add(Reshape((30, 30, 64)))
 
     # Upsample
-    # 135*135*512 -> 270*270*512
-    model.add(UpSampling2D((2, 2)))
-    # 270*270*512 -> 270*270*256
-    model.add(Conv2D(256, (3, 3), padding="same"))
+    # 30*30*64 -> 180*180*64
+    model.add(UpSampling2D((6, 6)))
+    # 180*180*64 -> 180*180*32
+    model.add(Conv2D(32, (3, 3), padding="same"))
     model.add(LeakyReLU(0.2))
     model.add(BatchNormalization())
 
-    # 270*270*256 -> 540*540*256
-    model.add(UpSampling2D((2, 2)))
-    # 540*540*256 -> 540*540*128
-    model.add(Conv2D(128, (3, 3), padding="same"))
+    # 180*180*32 -> 1080*1080*32
+    model.add(UpSampling2D((6, 6)))
+    # 1080*1080*32 -> 1080*1080*16
+    model.add(Conv2D(16, (3, 3), padding="same"))
     model.add(LeakyReLU(0.2))
     model.add(BatchNormalization())
 
-    # 540*540*128 -> 1080*1080*128
-    model.add(UpSampling2D((2, 2)))
-    # 1080*1080*128 -> 1080*1080*64
-    model.add(Conv2D(64, (3, 3), padding="same"))
-    model.add(LeakyReLU(0.2))
-    model.add(BatchNormalization())
-
-    # 1080*1080*64 -> 1080*1080*3
+    # 1080*1080*16 -> 1080*1080*3
     model.add(Conv2D(3, (3, 3), padding="same"))
 
     model.add(Activation("tanh"))
@@ -154,7 +147,7 @@ class DCGAN():
         d_loss = np.add(d_loss_real, d_loss_fake)*0.5
 
         # train generator
-        noise = np.random.normal(0, 1, (batch_size, self.Z_DIM))
+        noise = np.random.normal(0, 1, (batch_size, self.z_dim))
         g_loss = self.dcgan.train_on_batch(noise, np.array([1]*batch_size))
 
         # cross entropyを使っているので、- (t * log(D(G(z))) + (1-t) * log(1 - D(G(z))))がLossだが、
