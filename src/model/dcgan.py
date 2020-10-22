@@ -9,87 +9,90 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.optimizers import Adam
 
 
-def create_my_generator(z_dim):
-    noise_shape = (z_dim,)
+def create_generator(z: int = 128):
+    noise_shape = (z,)
     model = Sequential()
 
-    # noise_shape -> 1024
-    model.add(Dense(units=1024, input_shape=noise_shape))
+    # noise_shape -> 2560
+    model.add(Dense(units=2560, input_shape=noise_shape))
     model.add(LeakyReLU(0.2))
     model.add(BatchNormalization())
 
-    # 1024 -> 1024*64=65536
-    model.add(Dense(1024*64))
+    # 2560 -> 2560*3645=9331200
+    model.add(Dense(2560*3645))
     model.add(LeakyReLU(0.2))
     model.add(BatchNormalization())
 
-    # 65536 -> 8*8*1024
-    model.add(Reshape((8, 8, 1024)))
+    # 9331200 -> 135*135*512
+    model.add(Reshape((135, 135, 512)))
 
     # Upsample
-    # 8*8*1024 -> 16*16*1024
+    # 135*135*512 -> 270*270*512
     model.add(UpSampling2D((2, 2)))
-    # 16*16*1024 -> 16*16*512
-    model.add(Conv2D(512, (3, 3), padding="same"))
+    # 270*270*512 -> 270*270*256
+    model.add(Conv2D(256, (3, 3), padding="same"))
     model.add(LeakyReLU(0.2))
     model.add(BatchNormalization())
 
-    # 16*16*512 -> 32*32*512
+    # 270*270*256 -> 540*540*256
     model.add(UpSampling2D((2, 2)))
+    # 540*540*256 -> 540*540*128
+    model.add(Conv2D(128, (3, 3), padding="same"))
+    model.add(LeakyReLU(0.2))
+    model.add(BatchNormalization())
 
-    # 32*32*512 -> 32*32*3
+    # 540*540*128 -> 1080*1080*128
+    model.add(UpSampling2D((2, 2)))
+    # 1080*1080*128 -> 1080*1080*64
+    model.add(Conv2D(64, (3, 3), padding="same"))
+    model.add(LeakyReLU(0.2))
+    model.add(BatchNormalization())
+
+    # 1080*1080*64 -> 1080*1080*3
     model.add(Conv2D(3, (3, 3), padding="same"))
-
-    # 32*32*512 -> 32*32*256
-    # model.add(Conv2D(256, (3, 3), padding="same"))
-    # model.add(LeakyReLU(0.2))
-    # model.add(BatchNormalization())
-
-    # # 32*32*256 -> 64*64*256
-    # model.add(UpSampling2D((2, 2)))
-    # # 64*64*256 -> 64*64*128
-    # model.add(Conv2D(128, (3, 3), padding="same"))
-    # model.add(LeakyReLU(0.2))
-    # model.add(BatchNormalization())
-
-    # # 64*64*128 -> 128*128*128
-    # model.add(UpSampling2D((2, 2)))
-    # # 128*128*128 -> 128*128*64
-    # model.add(Conv2D(64, (3, 3), padding="same"))
-    # model.add(LeakyReLU(0.2))
-    # model.add(BatchNormalization())
-
-    # # 128*128*64 -> 128*128*3
-    # model.add(Conv2D(3, (3, 3), padding="same"))
 
     model.add(Activation("tanh"))
 
     return model
 
 
-def create_my_discriminator(img_shape):
+def create_discriminator(img_shape):
     model = Sequential()
 
-    # 128*128*3 -> 64*64*64
-    # model.add(Conv2D(64, (3, 3), input_shape=img_shape, strides=(2, 2), padding="same"))
-    # model.add(LeakyReLU(0.2))
-
-    # # 64*64*64 -> 32*32*128
-    # model.add(Conv2D(128, (3, 3), strides=(2, 2), padding="same"))
-    # model.add(LeakyReLU(0.2))
-
-    # 32*32*3 -> 16*16*64
+    # 1080*1080*3 -> 540*540*64
     model.add(Conv2D(64, (3, 3), input_shape=img_shape, strides=(2, 2), padding="same"))
     model.add(LeakyReLU(0.2))
 
-    # # 16*16*64 -> 8*8*128
+    # 540*540*64 -> 270*270*128
     model.add(Conv2D(128, (3, 3), strides=(2, 2), padding="same"))
     model.add(LeakyReLU(0.2))
 
-    # 8*8*128 -> 8192
+    # 270*270*128 -> 135*135*256
+    model.add(Conv2D(256, (3, 3), strides=(2, 2), padding="same"))
+    model.add(LeakyReLU(0.2))
+
+    # 135*135*256 -> 45*45*512
+    model.add(Conv2D(512, (3, 3), strides=(3, 3), padding="same"))
+    model.add(LeakyReLU(0.2))
+
+    # 45*45*512 -> 15*15*1024
+    model.add(Conv2D(1024, (3, 3), strides=(3, 3), padding="same"))
+    model.add(LeakyReLU(0.2))
+
+    # 15*15*1024 -> 230400
     model.add(Flatten())
 
-    # 8192 -> 256
+    # 230400 -> 1024
+    model.add(Dense(1024))
+    model.add(LeakyReLU(0.2))
+    model.add(Dropout(0.5))
+
+    # 1024 -> 512
+    model.add(Dense(512))
+    model.add(LeakyReLU(0.2))
+    model.add(Dropout(0.5))
+
+    # 512 -> 256
     model.add(Dense(256))
     model.add(LeakyReLU(0.2))
     model.add(Dropout(0.5))
@@ -102,33 +105,29 @@ def create_my_discriminator(img_shape):
 
 
 class DCGAN():
-    def __init__(self, is_load=False, time_str=None):
-        if is_load:
-            pass
-        else:
-            self.IMG_SHAPE = (32, 32, 3)
-            self.Z_DIM = 128
-            self.RGB_VAL = 256
+    def __init__(self, img_shape=(1080, 1080, 3), z_dim=128) -> None:
+        self.img_shape = img_shape
+        self.z_dim = z_dim
 
-            self.generator = self.create_generator(self.Z_DIM)
-            self.discriminator = self.create_discriminator(self.IMG_SHAPE)
-            self.dcgan = self.create_dcgan()
+        self.generator = self._create_generator(self.z_dim)
+        self.discriminator = self._create_discriminator(self.img_shape)
+        self.dcgan = self._create_dcgan()
 
-            d_opt = Adam(lr=1e-5, beta_1=0.1)
-            self.discriminator.compile(
-                loss="binary_crossentropy", optimizer=d_opt, metrics=["accuracy"])
+        d_opt = Adam(lr=1e-5, beta_1=0.1)
+        self.discriminator.compile(
+            loss="binary_crossentropy", optimizer=d_opt, metrics=["accuracy"])
+        self.discriminator.trainable = False
 
-            self.discriminator.trainable = False
-            dcgan_opt = Adam(lr=2e-4, beta_1=0.5)
-            self.dcgan.compile(loss="binary_crossentropy", optimizer=dcgan_opt)
+        dcgan_opt = Adam(lr=2e-4, beta_1=0.5)
+        self.dcgan.compile(loss="binary_crossentropy", optimizer=dcgan_opt)
 
-    def create_generator(self, z_dim):
-        return create_my_generator(z_dim)
+    def _create_generator(self, z_dim):
+        return create_generator(z_dim)
 
-    def create_discriminator(self, img_shape):
-        return create_my_discriminator(img_shape)
+    def _create_discriminator(self, img_shape):
+        return create_discriminator(img_shape)
 
-    def create_dcgan(self):
+    def _create_dcgan(self):
         return Sequential([self.generator, self.discriminator])
 
     def train(self, imgs, batch_size):
@@ -136,7 +135,7 @@ class DCGAN():
 
         # train discriminator
         half_batch_size = int(batch_size/2)
-        noise = np.random.normal(0, 1, (half_batch_size, self.Z_DIM))
+        noise = np.random.normal(0, 1, (half_batch_size, self.z_dim))
         gen_imgs = self.generate_image(noise)
 
         idx = np.random.randint(0, imgs.shape[0], half_batch_size)
@@ -175,7 +174,7 @@ class DCGAN():
         with open(root_path+"discriminator_report.txt", "w") as fh:
             self.discriminator.summary(print_fn=lambda x: fh.write(x+"¥n"))
 
-    def dump_model(self, root_path):
+    def dump_model(self):
         pass
 
 
