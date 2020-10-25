@@ -11,10 +11,9 @@ class ImageCrawler(object):
 
     def run(self, keyword: str, max_num: int) -> List[str]:
         filters = dict(
-            type="photo",
-            size="medium",
+            size="large",
             license="creativecommons",
-            layout="tall")
+            layout="square")
 
         self.crawler.crawl(keyword=keyword, filters=filters, max_num=max_num)
 
