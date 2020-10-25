@@ -1,6 +1,6 @@
 import argparse
 
-from src.image_crawler import ImageCrawler
+from src.data.image_crawler import ImageCrawler
 
 
 def main():

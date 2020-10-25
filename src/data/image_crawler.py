@@ -1,5 +1,6 @@
-from icrawler.builtin import BingImageCrawler
 import os
+
+from icrawler.builtin import BingImageCrawler
 from typing import List
 
 
