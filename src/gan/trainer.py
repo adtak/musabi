@@ -89,28 +89,6 @@ class Trainer():
         plt.savefig(self.working_dir + "loss.png", box_inches=0.1)
 
 
-def combine_images(images):
-    # 枚数*縦*横*RGB
-    # imageの枚数
-    total = images.shape[0]
-    cols = int(math.sqrt(total))
-    rows = math.ceil(float(total)/cols)
-
-    width, height, rgb = images.shape[1:]
-    combined_image = np.zeros((rows*height, cols*width, rgb), dtype=images.dtype)
-
-    # 縦*横*RGB
-    for image_idx, image in enumerate(images):
-        i = int(image_idx/cols)
-        j = image_idx % cols
-
-        # 縦*横
-        for rgb_idx in range(image.shape[-1]):
-            combined_image[width*i:width*(i+1), height*j:height*(j+1), rgb_idx] = image[:, :, rgb_idx]
-
-    return combined_image
-
-
 if __name__ == "__main__":
     trainer = Trainer(
         epochs=1,
