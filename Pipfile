@@ -5,14 +5,16 @@ verify_ssl = true
 
 [dev-packages]
 flake8 = "*"
-musabi = {editable = true, path = "."}
 pytest = "*"
 
 [packages]
+musabi = {editable = true, path = "."}
 numpy = "*"
 tensorflow = "*"
 keras = "*"
 seaborn = "*"
+icrawler = "*"
+boto3 = "*"
 
 [requires]
 python_version = "3.8"
