@@ -9,8 +9,9 @@ from typing import Tuple
 
 def resize_image(input_img_path: str, output_img_path: str, size: Tuple[int]) -> None:
     img = Image.open(input_img_path)
-    resized_img = img.resize(size, Image.NEAREST)
-    resized_img.save(output_img_path)
+    if img.mode == "RGB":
+        resized_img = img.resize(size, Image.NEAREST)
+        resized_img.save(output_img_path)
 
 
 def resize_images(input_dir_path: str, output_dir_path: str, size: Tuple[int]) -> None:
