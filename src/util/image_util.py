@@ -26,6 +26,15 @@ def resize_images(input_dir_path: str, output_dir_path: str, size: Tuple[int]) -
             resize_image(str(img_path), os.path.join(output_dir_path, resized_img_name), size)
 
 
+def load_images(dir_path: str) -> np.ndarray:
+    dir_path = pathlib.Path(dir_path)
+    result = []
+    for i in dir_path.iterdir():
+        if i.suffix in [".jpg"]:
+            result.append(np.array(Image.open(i)))
+    return np.array(result)
+
+
 def combine_images(imgs):
     # imgs.shape = 枚数*縦*横*RGB
     total = imgs.shape[0]
