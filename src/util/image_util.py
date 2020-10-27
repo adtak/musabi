@@ -18,6 +18,7 @@ def resize_images(input_dir_path: str, output_dir_path: str, size: Tuple[int]) -
     prefix, suffix = "", ""
 
     input_dir_path = pathlib.Path(input_dir_path)
+    os.mkdirs(output_dir_path, exist_ok=True)
     for img_path in input_dir_path.iterdir():
         img_name = img_path.stem
         img_extension = img_path.suffix
