@@ -18,4 +18,4 @@ def test_image_dir(tmpdir_factory, test_images):
     for i, img_arr in enumerate(test_images):
         fn = dir_path.join(f"image_{i}.jpg")
         Image.fromarray(img_arr).save(str(fn))
-    return dir_path
+    return str(dir_path)
