@@ -1,80 +1,71 @@
 import datetime
 import matplotlib.pyplot as plt
 import numpy as np
-import math
 import os
+import pathlib
 import random
 import seaborn as sns
 
-from keras.datasets import cifar10
 from PIL import Image
 
-from src.model.dcgan import DCGAN
+import src.util.image_util as image_util
+from src.gan.model.dcgan import DCGAN
 
 
-class Trainer():
-    def __init__(self, epochs, batch_size, show_progress_interval):
-        self.working_dir = "./report/" + datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S") + "/"
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.show_progress_interval = show_progress_interval
-
-        if not os.path.exists(self.working_dir):
-            os.mkdir(self.working_dir)
-        else:
-            raise Exception
+class Trainer:
+    def __init__(self, train_data_dir: str, output_dir: str):
+        self.train_data_dir = pathlib.Path(train_data_dir)
+        output_dir_name = datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S")
+        self.output_dir = pathlib.Path(output_dir) / output_dir_name
+        os.makedirs(self.output_dir, exist_ok=False)
 
         self.dcgan = DCGAN()
-        self.dcgan.dump_summary(self.working_dir)
-        self.losses_list = []
+        self.dcgan.dump_summary(self.output_dir)
+        self.loss_list = []
 
-    def train(self, train_name):
-        train_imgs = self.load_images(train_name)
-        num_batches = int(train_imgs.shape[0]/self.batch_size)
+    def train(self, epochs, batch_size, show_progress_interval):
+        train_imgs = image_util.load_images(self.train_data_dir)
+        num_batches = int(train_imgs.shape[0] / batch_size)
 
         print("Train start----------------------------------")
         print("Num of Batches: ", num_batches)
         print("---------------------------------------------")
 
-        for epoch in range(self.epochs):
+        for epoch in range(epochs):
             train_imgs = np.array(random.sample(list(train_imgs), len(train_imgs)))
             for batch_idx in range(num_batches):
-                imgs = train_imgs[batch_idx*self.batch_size: (batch_idx+1)*self.batch_size]
-                losses, gen_imgs = self.dcgan.train(imgs, self.batch_size)
-                self.losses_list.append(losses)
+                imgs = train_imgs[batch_idx * batch_size: (batch_idx + 1) * batch_size]
+                losses, gen_imgs = self.dcgan.train(imgs, batch_size)
+                self.loss_list.append(losses)
 
-                if batch_idx % self.show_progress_interval == 0:
-                    self.dump_train_progress(epoch, batch_idx, gen_imgs)
+                if batch_idx % show_progress_interval == 0:
+                    self.dump_train_progress(epoch, batch_idx, gen_imgs[0])
 
-    def load_images(self, img_name):
-        if img_name == "cifar10":
-            (img, _), (_, _) = cifar10.load_data()
-        else:
-            raise Exception
-
-        return img[:100]
-
-    def dump_train_progress(self, epoch, batch_idx, gen_imgs):
+    def dump_train_progress(self, epoch, batch_idx, gen_img):
         self.print_loss(epoch, batch_idx)
-        self.dump_images(epoch, batch_idx, gen_imgs)
+        self.dump_images(epoch, batch_idx, gen_img)
 
     def print_loss(self, epoch, batch_idx):
-        losses = self.losses_list[-1]
-        print("epoch: %d, batch: %d, g_loss: %f, d_loss: %f" % (epoch, batch_idx, losses[0], losses[-1]))
+        losses = self.loss_list[-1]
+        print(
+            "epoch: %d, batch: %d, g_loss: %f, d_loss: %f"
+            % (epoch, batch_idx, losses[0], losses[-1])
+        )
 
-    def dump_images(self, epoch, batch_idx, gen_imgs):
-        img_dir = self.working_dir + "generated_img/"
+    def dump_images(self, epoch, batch_idx, gen_img):
+        img_dir = self.output_dir / "generated_img"
         if not os.path.exists(img_dir):
             os.mkdir(img_dir)
 
-        images = combine_images(gen_imgs)
-        Image.fromarray(images.astype(np.uint8)).save(img_dir + "%04d_%04d.png" % (epoch, batch_idx))
+        Image.fromarray(gen_img.astype(np.uint8)).save(
+            img_dir / f"{epoch}_{batch_idx}.jpg"
+        )
 
     def dump_model(self):
-        self.dcgan.dump_model(self.working_dir)
+        self.dcgan.dump_model(self.output_dir)
 
     def plot_loss(self):
-        losses_array = np.array(self.losses_list).T
+        losses_array = np.array(self.loss_list).T
 
         sns.set_style("whitegrid")
         _, ax = plt.subplots(figsize=(15, 5))
@@ -86,14 +77,4 @@ class Trainer():
         ax.set_ylabel("Loss")
         ax.legend()
 
-        plt.savefig(self.working_dir + "loss.png", box_inches=0.1)
-
-
-if __name__ == "__main__":
-    trainer = Trainer(
-        epochs=1,
-        batch_size=10,
-        show_progress_interval=1)
-
-    trainer.train("cifar10")
-    trainer.plot_loss()
+        plt.savefig(self.output_dir / "loss.jpg", box_inches=0.1)
