@@ -6,7 +6,7 @@ from src.gan.trainer import Trainer
 
 def main():
     args = parse_arguments()
-    trainer = Trainer(args.train_data, args.ouput)
+    trainer = Trainer(args.train_data, args.output)
 
     trainer.train(args.epochs, args.batch_size, args.progress_interval)
     trainer.plot_loss()
