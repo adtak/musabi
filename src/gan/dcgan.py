@@ -162,9 +162,9 @@ class DCGAN():
         return self.generator.predict(noise)
 
     def dump_summary(self, root_path):
-        with open(root_path+"generator_report.txt", "w") as fh:
+        with open(root_path / "generator_report.txt", "w") as fh:
             self.generator.summary(print_fn=lambda x: fh.write(x+"¥n"))
-        with open(root_path+"discriminator_report.txt", "w") as fh:
+        with open(root_path / "discriminator_report.txt", "w") as fh:
             self.discriminator.summary(print_fn=lambda x: fh.write(x+"¥n"))
 
     def dump_model(self):
