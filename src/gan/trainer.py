@@ -9,7 +9,7 @@ import seaborn as sns
 from PIL import Image
 
 import src.util.image_util as image_util
-from src.gan.model.dcgan import DCGAN
+from src.gan.dcgan import DCGAN
 
 
 class Trainer:

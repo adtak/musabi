@@ -1,7 +1,7 @@
 import numpy as np
 
 from src.gan.trainer import Trainer
-from src.gan.model.dcgan import DCGAN
+from src.gan.dcgan import DCGAN
 
 
 def test_trainer(tmpdir_factory, monkeypatch, test_image_dir):
