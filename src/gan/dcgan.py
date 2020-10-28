@@ -106,13 +106,7 @@ class DCGAN():
         self.discriminator = self._create_discriminator(self.img_shape)
         self.dcgan = self._create_dcgan()
 
-        d_opt = Adam(lr=1e-5, beta_1=0.1)
-        self.discriminator.compile(
-            loss="binary_crossentropy", optimizer=d_opt, metrics=["accuracy"])
-        self.discriminator.trainable = False
-
-        dcgan_opt = Adam(lr=2e-4, beta_1=0.5)
-        self.dcgan.compile(loss="binary_crossentropy", optimizer=dcgan_opt)
+        self.compile()
 
     def _create_generator(self, z_dim):
         return create_generator(z_dim)
@@ -122,6 +116,15 @@ class DCGAN():
 
     def _create_dcgan(self):
         return Sequential([self.generator, self.discriminator])
+
+    def compile(self):
+        d_opt = Adam(lr=1e-5, beta_1=0.1)
+        self.discriminator.compile(
+            loss="binary_crossentropy", optimizer=d_opt, metrics=["accuracy"])
+        self.discriminator.trainable = False
+
+        dcgan_opt = Adam(lr=2e-4, beta_1=0.5)
+        self.dcgan.compile(loss="binary_crossentropy", optimizer=dcgan_opt)
 
     def train(self, imgs, batch_size):
         imgs = (imgs.astype(np.float32)-127.5)/127.5
@@ -161,14 +164,14 @@ class DCGAN():
     def generate_image(self, noise):
         return self.generator.predict(noise)
 
-    def dump_summary(self, root_path):
-        with open(root_path / "generator_report.txt", "w") as fh:
+    def dump_summary(self, ouput_dir):
+        with open(ouput_dir / "generator_report.txt", "w") as fh:
             self.generator.summary(print_fn=lambda x: fh.write(x+"¥n"))
-        with open(root_path / "discriminator_report.txt", "w") as fh:
+        with open(ouput_dir / "discriminator_report.txt", "w") as fh:
             self.discriminator.summary(print_fn=lambda x: fh.write(x+"¥n"))
 
-    def dump_model(self):
-        pass
+    def save_model(self, filepath):
+        self.dcgan.save(filepath)
 
 
 if __name__ == "__main__":

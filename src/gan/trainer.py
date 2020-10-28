@@ -61,8 +61,8 @@ class Trainer:
             img_dir / f"{epoch}_{batch_idx}.jpg"
         )
 
-    def dump_model(self):
-        self.dcgan.dump_model(self.output_dir)
+    def save_model(self):
+        self.dcgan.save_model(self.output_dir / "trained_model")
 
     def plot_loss(self):
         losses_array = np.array(self.loss_list).T
