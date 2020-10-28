@@ -8,7 +8,7 @@ def main():
     args = parse_arguments()
     trainer = Trainer(args.train_data, args.output)
 
-    trainer.train(args.epochs, args.batch_size, args.progress_interval)
+    trainer.train(args.epochs, args.batch_size)
     trainer.plot_loss()
 
 
@@ -18,7 +18,6 @@ def parse_arguments():
     arg_parser.add_argument("-o", "--output", required=True)
     arg_parser.add_argument("-e", "--epochs", required=True, type=int)
     arg_parser.add_argument("-b", "--batch_size", required=True, type=int)
-    arg_parser.add_argument("-p", "--progress_interval", required=True, type=int)
     return arg_parser.parse_args()
 
 
