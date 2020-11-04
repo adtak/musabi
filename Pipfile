@@ -3,6 +3,9 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
+[pipenv]
+allow_prereleases = true
+
 [dev-packages]
 flake8 = "*"
 pytest = "*"
@@ -16,6 +19,7 @@ keras = "*"
 seaborn = "*"
 icrawler = "*"
 boto3 = "*"
+instabot = "*"
 
 [requires]
 python_version = "3.8"
