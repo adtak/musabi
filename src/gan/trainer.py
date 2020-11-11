@@ -12,7 +12,7 @@ import src.util.image_util as image_util
 from src.gan.dcgan import DCGAN
 
 
-class Trainer:
+class Trainer(object):
     def __init__(self, train_data_dir: str, output_dir: str):
         self.train_data_dir = pathlib.Path(train_data_dir)
         output_dir_name = datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S")
@@ -40,6 +40,10 @@ class Trainer:
                 losses, gen_imgs = self.dcgan.train(imgs, batch_size)
                 self.loss_list.append(losses)
                 self.show_train_progress(epoch, batch, gen_imgs[0])
+
+        self.save_model()
+
+        print("--Train end----------------------------------")
 
     def show_train_progress(self, epoch, batch, gen_img):
         self.print_loss(epoch, batch)
