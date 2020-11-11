@@ -1,4 +1,4 @@
-from src.gan.model.dcgan import DCGAN
+from src.gan.dcgan import DCGAN
 
 
 def test_dcgan(test_images):
