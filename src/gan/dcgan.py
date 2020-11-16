@@ -1,12 +1,19 @@
 import numpy as np
 import random
 
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Reshape, Flatten, Dropout, UpSampling2D
-from keras.layers.normalization import BatchNormalization
-from keras.layers.convolutional import Conv2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.optimizers import Adam
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import (
+    Activation,
+    BatchNormalization,
+    Conv2D,
+    Dense,
+    Dropout,
+    Flatten,
+    LeakyReLU,
+    UpSampling2D,
+    Reshape,
+)
+from tensorflow.keras.optimizers import Adam
 
 
 def create_generator(z: int = 128):
@@ -19,7 +26,7 @@ def create_generator(z: int = 128):
     model.add(BatchNormalization())
 
     # 240 -> 240*240=57600
-    model.add(Dense(240*240))
+    model.add(Dense(240 * 240))
     model.add(LeakyReLU(0.2))
     model.add(BatchNormalization())
 
@@ -97,7 +104,7 @@ def create_discriminator(img_shape):
     return model
 
 
-class DCGAN():
+class DCGAN(object):
     def __init__(self, img_shape=(1080, 1080, 3), z_dim=128) -> None:
         self.img_shape = img_shape
         self.z_dim = z_dim
@@ -120,17 +127,18 @@ class DCGAN():
     def compile(self):
         d_opt = Adam(lr=1e-5, beta_1=0.1)
         self.discriminator.compile(
-            loss="binary_crossentropy", optimizer=d_opt, metrics=["accuracy"])
+            loss="binary_crossentropy", optimizer=d_opt, metrics=["accuracy"]
+        )
         self.discriminator.trainable = False
 
         dcgan_opt = Adam(lr=2e-4, beta_1=0.5)
         self.dcgan.compile(loss="binary_crossentropy", optimizer=dcgan_opt)
 
     def train(self, imgs, batch_size):
-        imgs = (imgs.astype(np.float32)-127.5)/127.5
+        imgs = (imgs.astype(np.float32) - 127.5) / 127.5
 
         # train discriminator
-        half_batch_size = int(batch_size/2)
+        half_batch_size = int(batch_size / 2)
         noise = np.random.normal(0, 1, (half_batch_size, self.z_dim))
         gen_imgs = self.generate_image(noise)
 
@@ -139,19 +147,19 @@ class DCGAN():
 
         # soft label
         d_loss_real = self.discriminator.train_on_batch(
-            imgs,
-            np.array([random.uniform(0.7, 1.2) for _ in range(half_batch_size)]))
+            imgs, np.array([random.uniform(0.7, 1.2) for _ in range(half_batch_size)])
+        )
         d_loss_fake = self.discriminator.train_on_batch(
-            gen_imgs,
-            np.array([random.uniform(0, 0.3) for _ in range(half_batch_size)]))
+            gen_imgs, np.array([random.uniform(0, 0.3) for _ in range(half_batch_size)])
+        )
 
         d_loss_real = d_loss_real[0]
         d_loss_fake = d_loss_fake[0]
-        d_loss = np.add(d_loss_real, d_loss_fake)*0.5
+        d_loss = np.add(d_loss_real, d_loss_fake) * 0.5
 
         # train generator
         noise = np.random.normal(0, 1, (batch_size, self.z_dim))
-        g_loss = self.dcgan.train_on_batch(noise, np.array([1]*batch_size))
+        g_loss = self.dcgan.train_on_batch(noise, np.array([1] * batch_size))
 
         # cross entropyを使っているので、- (t * log(D(G(z))) + (1-t) * log(1 - D(G(z))))がLossだが、
         # soft1なLabelにして1でなくなると、第2項が残っちゃうので、t * log(D(G(z)))を最大化できなくなる
@@ -166,9 +174,9 @@ class DCGAN():
 
     def dump_summary(self, ouput_dir):
         with open(ouput_dir / "generator_report.txt", "w") as fh:
-            self.generator.summary(print_fn=lambda x: fh.write(x+"¥n"))
+            self.generator.summary(print_fn=lambda x: fh.write(x + "¥n"))
         with open(ouput_dir / "discriminator_report.txt", "w") as fh:
-            self.discriminator.summary(print_fn=lambda x: fh.write(x+"¥n"))
+            self.discriminator.summary(print_fn=lambda x: fh.write(x + "¥n"))
 
     def save_generator(self, filepath):
         self.generator.save(filepath)
