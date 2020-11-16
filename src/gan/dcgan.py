@@ -179,7 +179,7 @@ class DCGAN(object):
             self.discriminator.summary(print_fn=lambda x: fh.write(x + "¥n"))
 
     def save_generator(self, filepath):
-        self.generator.save(filepath)
+        self.generator.save(str(filepath))
 
 
 if __name__ == "__main__":
