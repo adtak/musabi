@@ -170,8 +170,8 @@ class DCGAN():
         with open(ouput_dir / "discriminator_report.txt", "w") as fh:
             self.discriminator.summary(print_fn=lambda x: fh.write(x+"¥n"))
 
-    def save_model(self, filepath):
-        self.dcgan.save(filepath)
+    def save_generator(self, filepath):
+        self.generator.save(filepath)
 
 
 if __name__ == "__main__":

@@ -60,7 +60,7 @@ class Trainer(object):
         )
 
     def save_model(self):
-        self.dcgan.save_model(self.output_model_dir / "trained_model")
+        self.dcgan.save_generator(self.output_model_dir / "trained_model")
 
     def plot_loss(self):
         losses_array = np.array(self.loss_list).T
