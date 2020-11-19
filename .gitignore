@@ -134,4 +134,4 @@ config
 .vscode
 .DS_store
 
-train_data
+model
