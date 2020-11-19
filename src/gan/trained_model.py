@@ -8,7 +8,7 @@ class TrainedModel(object):
         self.model = None
 
     def load(self) -> None:
-        self.model = keras.models.load_model(self.filepath)
+        self.model = keras.models.load_model(self.model_path)
 
     def predict(self):
         noise = np.random.normal(0, 1, (1, 128))
