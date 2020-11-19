@@ -6,8 +6,6 @@ import pathlib
 import random
 import seaborn as sns
 
-from PIL import Image
-
 import src.util.image_util as image_util
 from src.gan.dcgan import DCGAN
 
@@ -47,17 +45,14 @@ class Trainer(object):
 
     def show_train_progress(self, epoch, batch, gen_img):
         self.print_loss(epoch, batch)
-        self.save_images(epoch, batch, gen_img)
+        self.save_image(epoch, batch, gen_img)
 
     def print_loss(self, epoch, batch):
         loss = self.loss_list[-1]
         print(f"epoch: {epoch}, batch: {batch}, g_loss: {loss[0]}, d_loss: {loss[-1]}")
 
-    # TODO: mv to util
-    def save_images(self, epoch, batch, gen_img):
-        Image.fromarray(gen_img.astype(np.uint8)).save(
-            self.output_img_dir / f"{epoch}_{batch}.jpg"
-        )
+    def save_image(self, epoch, batch, gen_img):
+        image_util.save_image(gen_img, self.output_img_dir, f"{epoch}_{batch}.jpg")
 
     def save_model(self):
         self.dcgan.save_generator(self.output_model_dir / "trained_model")

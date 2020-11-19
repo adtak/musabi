@@ -47,6 +47,13 @@ def load_images(dir_path: str, target_suffix: List[str] = [".jpg"]) -> np.ndarra
     return np.array(result)
 
 
+def save_image(img: np.ndarray, img_dir_path: str, img_name: str) -> None:
+    img_dir_path = pathlib.Path(img_dir_path)
+    Image.fromarray(img.astype(np.uint8)).save(
+        img_dir_path / img_name
+    )
+
+
 def combine_images(imgs):
     # imgs.shape = 枚数*縦*横*RGB
     total = imgs.shape[0]
