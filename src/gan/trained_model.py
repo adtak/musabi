@@ -12,4 +12,4 @@ class TrainedModel(object):
 
     def predict(self):
         noise = np.random.normal(0, 1, (1, 128))
-        return self.model.predict(noise)
+        return self.model.predict(noise) * 127.5 + 127.5
