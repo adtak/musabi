@@ -15,11 +15,11 @@ black = "*"
 musabi = {editable = true, path = "."}
 numpy = "*"
 tensorflow = "*"
-keras = "*"
 seaborn = "*"
 icrawler = "*"
 boto3 = "*"
 instabot = "*"
+Pillow = "*"
 
 [requires]
 python_version = "3.8"
