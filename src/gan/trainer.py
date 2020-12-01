@@ -49,7 +49,7 @@ class Trainer(object):
 
     def print_loss(self, epoch, batch):
         loss = self.loss_list[-1]
-        print(f"epoch: {epoch}, batch: {batch}, g_loss: {loss[0]}, d_loss: {loss[-1]}")
+        print(f"epoch: {epoch}, batch: {batch}, d_loss: {loss[0]}, g_loss: {loss[-1]}")
 
     def save_image(self, epoch, batch, gen_img):
         image_util.save_image(gen_img, self.output_img_dir, f"{epoch}_{batch}.jpg")
