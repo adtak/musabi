@@ -26,7 +26,7 @@ def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("-m", "--model_dir_path", required=True)
     arg_parser.add_argument("-i", "--img_dir_path", required=True)
-    arg_parser.add_argument("-c", "--caption")
+    arg_parser.add_argument("-c", "--caption", default="")
     return arg_parser.parse_args()
 
 
