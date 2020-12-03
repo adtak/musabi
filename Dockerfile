@@ -9,6 +9,6 @@ COPY setup.py .
 COPY setup.cfg .
 COPY model/ ./model/
 
-RUN pip install pipenv && pipenv install -e .
+RUN pip install pipenv && pipenv install -e . --skip-lock
 
-CMD ["pipenv run python insta_job.py"]
+CMD pipenv run python src/job/insta_job.py -m model -i image
