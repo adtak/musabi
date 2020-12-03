@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from typing import List
 
@@ -33,6 +34,7 @@ def generate_image(model_dir_path: str, img_dir_path: str, img_name: str) -> Non
     model = TrainedModel(model_dir_path)
     model.load()
     img = model.predict()
+    os.makedirs(img_dir_path, exist_ok=True)
     # save_image
     image_util.save_image(img[0], img_dir_path, img_name)
 
