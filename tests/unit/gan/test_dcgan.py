@@ -13,7 +13,6 @@ def test_dcgan(monkeypatch, test_images):
     losses, gen_imgs = model.train(test_images, 5)
     image_number, height, width, rgb = gen_imgs.shape
 
-    assert len(losses) == 4
     assert image_number == 2
     assert height == 1080
     assert width == 1080

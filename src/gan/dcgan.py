@@ -1,6 +1,7 @@
 import numpy as np
 import random
 
+from dataclasses import dataclass
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import (
     Activation,
@@ -167,7 +168,12 @@ class DCGAN(object):
         # 実用的にはlog(D(G(z)))を最大化するべきらしい
         gen_imgs = gen_imgs * 127.5 + 127.5
 
-        return (d_loss, d_loss_real, d_loss_fake, g_loss), gen_imgs
+        return DCGANLoss(
+            discriminator_loss=d_loss,
+            discriminator_real_loss=d_loss_real,
+            discriminator_fake_loss=d_loss_fake,
+            generator_loss=g_loss
+            ), gen_imgs
 
     def generate_image(self, noise):
         return self.generator.predict(noise)
@@ -180,6 +186,14 @@ class DCGAN(object):
 
     def save_generator(self, filepath):
         self.generator.save(str(filepath))
+
+
+@dataclass
+class DCGANLoss:
+    discriminator_loss: float
+    discriminator_real_loss: float
+    discriminator_fake_loss: float
+    generator_loss: float
 
 
 if __name__ == "__main__":
