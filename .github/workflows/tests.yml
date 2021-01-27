@@ -2,7 +2,7 @@ name: Workflow for Tests
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   run-pytest:
     name: Run tests with pytest
