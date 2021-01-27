@@ -5,9 +5,10 @@ import os
 import pathlib
 import random
 import seaborn as sns
+from typing import List
 
 import src.util.image_util as image_util
-from src.gan.dcgan import DCGAN
+from src.gan.dcgan import DCGAN, DCGANLoss
 
 
 class Trainer(object):
@@ -23,7 +24,7 @@ class Trainer(object):
 
         self.dcgan = DCGAN()
         self.dcgan.dump_summary(self.output_dir)
-        self.loss_list = []
+        self.loss_list: List[DCGANLoss] = []
 
     def train(self, epochs: int, batch_size: int) -> None:
         train_imgs = image_util.load_images(self.train_data_dir)
@@ -48,8 +49,11 @@ class Trainer(object):
         self.save_image(epoch, batch, gen_img)
 
     def print_loss(self, epoch, batch):
-        loss = self.loss_list[-1]
-        print(f"epoch: {epoch}, batch: {batch}, d_loss: {loss[0]}, g_loss: {loss[-1]}")
+        loss: DCGANLoss = self.loss_list[-1]
+        loss_str = f"epoch: {epoch}, batch: {batch}, " \
+            f"discriminator_loss: {loss.discriminator_loss}," \
+            f"generator_loss: {loss.generator_loss}"
+        print(loss_str)
 
     def save_image(self, epoch, batch, gen_img):
         image_util.save_image(gen_img, self.output_img_dir, f"{epoch}_{batch}.jpg")
@@ -58,13 +62,14 @@ class Trainer(object):
         self.dcgan.save_generator(self.output_model_dir / "trained_model")
 
     def plot_loss(self):
-        losses_array = np.array(self.loss_list).T
+        discriminator_losses = np.array([loss.discriminator_loss for loss in self.loss_list])
+        generator_losses = np.array([loss.generator_loss for loss in self.loss_list])
 
         sns.set_style("whitegrid")
         _, ax = plt.subplots(figsize=(15, 5))
 
-        ax.plot(losses_array[0], label="Discriminator_Loss")
-        ax.plot(losses_array[-1], label="Generator_Loss")
+        ax.plot(discriminator_losses, label="Discriminator_Loss")
+        ax.plot(generator_losses, label="Generator_Loss")
 
         ax.set_xlabel("Iteration")
         ax.set_ylabel("Loss")
