@@ -75,4 +75,4 @@ class Trainer(object):
         ax.set_ylabel("Loss")
         ax.legend()
 
-        plt.savefig(self.output_dir / "loss.jpg", box_inches=0.1)
+        plt.savefig(self.output_dir / "loss.jpg")
