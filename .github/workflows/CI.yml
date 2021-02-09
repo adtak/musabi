@@ -1,8 +1,8 @@
-name: Workflow for Tests
+name: Workflow for CI
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   run-pytest:
     name: Run tests with pytest
