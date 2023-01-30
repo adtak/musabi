@@ -1,8 +1,8 @@
+from typing import Tuple
+
 import numpy as np
 import pytest
-
 from PIL import Image
-from typing import Tuple
 
 
 @pytest.fixture(scope="session")
