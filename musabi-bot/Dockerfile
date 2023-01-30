@@ -1,14 +1,10 @@
-FROM python:3.8-buster
+FROM python:3.9.15-buster
 
-WORKDIR /opt/app
+WORKDIR /app
 
-COPY src/ ./src/
-COPY Pipfile .
-COPY Pipfile.lock .
-COPY setup.py .
-COPY setup.cfg .
-COPY model/ ./model/
+COPY pyproject.toml poetry.lock setup.cfg ./
+COPY musabi_bot/ ./musabi_bot/
 
-RUN pip install pipenv && pipenv install -e . --skip-lock
-
-CMD pipenv run python src/job/insta_job.py -m model -i image
+RUN python -m pip install --upgrade pip && pip install poetry
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-dev
