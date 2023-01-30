@@ -8,6 +8,10 @@ packages = [{include = "musabi_bot"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+diffusers = "^0.12.1"
+transformers = "^4.26.0"
+ftfy = "^6.1.1"
+accelerate = "^0.15.0"
 
 
 [tool.poetry.group.dev.dependencies]
