@@ -7,7 +7,9 @@ import numpy as np
 from PIL import Image
 
 
-def resize_image(input_img_path: str, output_img_path: str, size: Tuple[int, int]) -> None:
+def resize_image(
+    input_img_path: str, output_img_path: str, size: Tuple[int, int]
+) -> None:
     img = Image.open(input_img_path)
     if img.mode == "RGB":
         resized_img = img.resize(size, Image.NEAREST)
