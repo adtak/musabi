@@ -1,7 +1,12 @@
-import src.util.image_util as image_util
+import numpy as np
+import pytest
+
+import musabi_bot.util.image_util as image_util
 
 
-def test_resize_images(tmpdir_factory, test_images, test_image_dir):
+def test_resize_images(
+    tmpdir_factory: pytest.TempdirFactory, test_images: np.ndarray, test_image_dir: str
+) -> None:
     # setting
     size = (256, 256)
     output_dir_path = tmpdir_factory.mktemp("test_resized_images")
@@ -16,7 +21,7 @@ def test_resize_images(tmpdir_factory, test_images, test_image_dir):
     assert expected_size == actual_size
 
 
-def test_load_images(test_image_dir):
+def test_load_images(test_image_dir: str) -> None:
     imgs = image_util.load_images(test_image_dir)
     num, width, height, rgb = imgs.shape
 

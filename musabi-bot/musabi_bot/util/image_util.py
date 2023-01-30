@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image
 
 
-def resize_image(input_img_path: str, output_img_path: str, size: Tuple[int]) -> None:
+def resize_image(input_img_path: str, output_img_path: str, size: Tuple[int, int]) -> None:
     img = Image.open(input_img_path)
     if img.mode == "RGB":
         resized_img = img.resize(size, Image.NEAREST)
@@ -15,14 +15,14 @@ def resize_image(input_img_path: str, output_img_path: str, size: Tuple[int]) ->
 
 
 def resize_images(
-    input_dir_path: str,
+    input_dir: str,
     output_dir_path: str,
-    size: Tuple[int],
+    size: Tuple[int, int],
     target_suffix: List[str] = [".jpg"],
 ) -> None:
     prefix, suffix = "", ""
 
-    input_dir_path = pathlib.Path(input_dir_path)
+    input_dir_path = pathlib.Path(input_dir)
     os.makedirs(output_dir_path, exist_ok=True)
     for img_path in input_dir_path.iterdir():
         img_name = img_path.stem
@@ -34,8 +34,8 @@ def resize_images(
             )
 
 
-def load_images(dir_path: str, target_suffix: List[str] = [".jpg"]) -> np.ndarray:
-    dir_path = pathlib.Path(dir_path)
+def load_images(dir: str, target_suffix: List[str] = [".jpg"]) -> np.ndarray:
+    dir_path = pathlib.Path(dir)
     result = []
     for i in dir_path.iterdir():
         if i.suffix in target_suffix:
@@ -43,12 +43,12 @@ def load_images(dir_path: str, target_suffix: List[str] = [".jpg"]) -> np.ndarra
     return np.array(result)
 
 
-def save_image(img: np.ndarray, img_dir_path: str, img_name: str) -> None:
-    img_dir_path = pathlib.Path(img_dir_path)
+def save_image(img: np.ndarray, img_dir: str, img_name: str) -> None:
+    img_dir_path = pathlib.Path(img_dir)
     Image.fromarray(img.astype(np.uint8)).save(img_dir_path / img_name)
 
 
-def combine_images(imgs):
+def combine_images(imgs: np.ndarray) -> np.ndarray:
     # imgs.shape = 枚数*縦*横*RGB
     total = imgs.shape[0]
     cols = int(math.sqrt(total))

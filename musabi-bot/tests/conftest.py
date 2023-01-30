@@ -6,14 +6,16 @@ from PIL import Image
 
 
 @pytest.fixture(scope="session")
-def test_images():
+def test_images() -> np.ndarray:
     num: int = 10
-    shape: Tuple[int] = (1080, 1080, 3)
+    shape: Tuple[int, int, int] = (1080, 1080, 3)
     return np.array([np.zeros(shape=shape) for _ in range(num)], dtype="uint8")
 
 
 @pytest.fixture(scope="session")
-def test_image_dir(tmpdir_factory, test_images):
+def test_image_dir(
+    tmpdir_factory: pytest.TempdirFactory, test_images: np.ndarray
+) -> str:
     dir_path = tmpdir_factory.mktemp("test_images")
     for i, img_arr in enumerate(test_images):
         fn = dir_path.join(f"image_{i}.jpg")
