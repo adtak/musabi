@@ -1,22 +1,42 @@
 [tool.poetry]
-name = "src"
+name = "musabi_iac"
 version = "0.1.0"
 description = ""
 authors = ["adtak <adtak@adtak>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-"aws-cdk.core" = "^1.76.0"
-"aws-cdk.aws-ec2" = "^1.76.0"
-"aws-cdk.aws-ecs" = "^1.76.0"
-"aws-cdk.aws-ecr" = "^1.76.0"
-"aws-cdk.aws-ecs-patterns" = "^1.76.0"
-"aws-cdk.aws-applicationautoscaling" = "^1.76.0"
+python = "^3.9"
+aws-cdk-lib = "2.45.0"
+constructs = "^10.0.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
-flake8 = "^3.8.4"
+pytest = "6.2.5"
+flake8 = "^5.0.4"
+black = "^22.10.0"
+isort = "^5.10.1"
+mypy = "^0.982"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+# エラー時のメッセージを詳細表示
+show_error_context = true
+# エラー発生箇所の行数/列数を表示
+show_column_numbers = true
+# import 先のチェックを行わない (デフォルトだとサードパーティーライブラリまでチェックする)
+ignore_missing_imports = true
+# 関数定義の引数/戻り値に型アノテーション必須
+disallow_untyped_defs = true
+# デフォルト引数に None を取る場合型アノテーションに Optional 必須
+no_implicit_optional = true
+# 戻り値が Any 型ではない関数の戻り値の型アノテーションが Any のとき警告
+warn_return_any = true
+# mypy エラーに該当しない箇所に `# type: ignore` コメントが付与されていたら警告
+# ※ `# type: ignore` が付与されている箇所は mypy のエラーを無視出来る
+warn_unused_ignores = true
+# 冗長なキャストに警告
+warn_redundant_casts = true
+# チェック対象外ディレクトリ
+exclude = ["^cdk.out/$"]
