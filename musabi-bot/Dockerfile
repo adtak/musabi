@@ -8,3 +8,5 @@ COPY musabi_bot/ ./musabi_bot/
 RUN python -m pip install --upgrade pip && pip install poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
+
+ENTRYPOINT ["python", "/app/musabi_bot/main.py"]

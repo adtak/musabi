@@ -20,7 +20,7 @@ def main() -> None:
     }
     images = pipe(**generate_params).images
     for i, image in enumerate(images):
-        image.save(f"test_{i}.png")
+        image.save(f"/opt/ml/processing/output/test_{i}.png")
 
 
 if __name__ == "__main__":
