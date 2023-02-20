@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-from aws_cdk import core
+import aws_cdk as cdk
 
-from src.musabi_stack import MusabiStack
+from musabi_iac.musabi_stack import MusabiStack
 
-
-app = core.App()
+app = cdk.App()
 MusabiStack(app, "musabiStack")
 
 app.synth()
