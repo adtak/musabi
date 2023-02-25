@@ -1,4 +1,5 @@
 import torch
+import os
 from diffusers import StableDiffusionPipeline
 
 
@@ -9,10 +10,10 @@ def main() -> None:
         model_id, torch_dtype=torch.float16
     ).to(device)
     generate_params = {
-        "prompt": "real photo, sneaker, kicks, cyberpunk, kitsch style",
-        "negative_prompt": "legs",
-        "width": 1080,
-        "height": 1080,
+        "prompt": os.environ.get("PROMPT", "real photo"),
+        "negative_prompt": os.environ.get("NEGATIVE_PROMPT", ""),
+        "width": int(os.environ.get("WIDTH", "1080")),
+        "height": int(os.environ.get("HEIGHT", "566")),
         # "max_embeddings_multiples": 2,
         # "num_inference_steps": 30,
         # "guidance_scale": 10,
