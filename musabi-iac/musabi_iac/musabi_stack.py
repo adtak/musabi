@@ -75,13 +75,19 @@ class MusabiStack(Stack):
                 "AppSpecification": {
                     "ImageUri": self.ecr_repository.repository_uri_for_tag("latest")
                 },
+                "Environment": {
+                    "PROMPT.$": "$.PROMPT",
+                    "NEGATIVE_PROMPT.$": "$.NEGATIVE_PROMPT",
+                    "WIDTH.$": "$.WIDTH",
+                    "HEIGHT.$": "$.HEIGHT",
+                },
                 "ProcessingJobName.$": (
                     "States.Format('PreprocessingJob-{}', $$.Execution.Name)"
                 ),
                 "ProcessingResources": {
                     "ClusterConfig": {
                         "InstanceCount": 1,
-                        "InstanceType": "ml.t3.medium",
+                        "InstanceType": "ml.p2.xlarge",
                         "VolumeSizeInGB": 1,
                     }
                 },
