@@ -83,7 +83,7 @@ class Client:
             "access_token": self.config.access_token,
             "image_url": image_url,
             "caption": caption,
-            "is_carousel_item": True,
+            "is_carousel_item": False,
         }
         return call_api(url, "POST", request)
 
@@ -116,23 +116,27 @@ class Client:
         return call_api(url, "GET", request)
 
 
-def instagram_upload_image(media_url, media_caption):
-    client = Client(Config())
-    result = client.create_media("IMAGE", media_url, media_caption)
-    media_id = result["id"]
-
-    status = "IN_PROGRESS"
-    while status != "FINISHED":
-        result = client.get_media(media_id)
-        status = result["status_code"]
-        time.sleep(5)
-    result = client.publish_media(media_id)
+def upload_image(client: Client, image_url: str, caption: str) -> Any:
+    conainer_id = client.create_media(image_url=image_url, caption=caption)["id"]
+    status_code = "IN_PROGRESS"
+    while status_code != "FINISHED":
+        print(status_code)
+        status_code = client.get_container_status(container_id=conainer_id)[
+            "status_code"
+        ]
+        time.sleep(3)
+    media_id = client.publish_media(creation_id=conainer_id)["id"]
+    return client.get_media(media_id=media_id)
 
 
 def main() -> None:
     load_dotenv(".env")
     client = Client(Config())
-    response = client.get_media("17879502580930621")
+    response = upload_image(
+        client,
+        image_url="https://i.seadn.io/gae/04-RumcGPTAplXUZpCwjAEi7G2xcIEJTJenDM0dGirx0d5DqpkBEDt2mvDisz-P_CNkI5XfjREKCMfvlFkl6pFfLule2SXOUkkS-hQ?auto=format&w=1000",
+        caption="",
+    )
     pprint.pprint(response)
 
 
