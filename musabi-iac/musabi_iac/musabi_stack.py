@@ -76,10 +76,10 @@ class MusabiStack(Stack):
                     "ImageUri": self.ecr_repository.repository_uri_for_tag("latest")
                 },
                 "Environment": {
-                    "PROMPT.$": "$.PROMPT",
-                    "NEGATIVE_PROMPT.$": "$.NEGATIVE_PROMPT",
-                    "WIDTH.$": "$.WIDTH",
-                    "HEIGHT.$": "$.HEIGHT",
+                    "PROMPT.$": "$.Prompt",
+                    "NEGATIVE_PROMPT.$": "$.NegativePrompt",
+                    "WIDTH.$": "$.Width",
+                    "HEIGHT.$": "$.Height",
                 },
                 "ProcessingJobName.$": (
                     "States.Format('PreprocessingJob-{}', $$.Execution.Name)"
