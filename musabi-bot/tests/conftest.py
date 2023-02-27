@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import numpy as np
+import py
 import pytest
 from PIL import Image
 
@@ -16,7 +17,7 @@ def test_images() -> np.ndarray:
 def test_image_dir(
     tmpdir_factory: pytest.TempdirFactory, test_images: np.ndarray
 ) -> str:
-    dir_path = tmpdir_factory.mktemp("test_images")
+    dir_path: py.path.local = tmpdir_factory.mktemp("test_images")
     for i, img_arr in enumerate(test_images):
         fn = dir_path.join(f"image_{i}.jpg")
         Image.fromarray(img_arr).save(str(fn))

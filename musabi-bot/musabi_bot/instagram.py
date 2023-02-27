@@ -103,7 +103,7 @@ class Client:
         }
         return call_api(url, "POST", request)
 
-    def get_content_publishing_limit(self):
+    def get_content_publishing_limit(self) -> Any:
         url = (
             self.config.endpoint_base
             + self.config.account_id
