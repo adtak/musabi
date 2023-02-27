@@ -12,6 +12,7 @@ transformers = "^4.26.0"
 ftfy = "^6.1.1"
 accelerate = "^0.15.0"
 torch = "~1.12.1"
+python-dotenv = "^1.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
