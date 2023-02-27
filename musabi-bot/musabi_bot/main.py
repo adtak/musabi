@@ -14,7 +14,7 @@ def main() -> None:
         "prompt": os.environ.get("PROMPT", "real photo"),
         "negative_prompt": os.environ.get("NEGATIVE_PROMPT", ""),
         "width": int(os.environ.get("WIDTH", "1080")),
-        "height": int(os.environ.get("HEIGHT", "566")),
+        "height": int(os.environ.get("HEIGHT", "1080")),
         # "max_embeddings_multiples": 2,
         # "num_inference_steps": 30,
         # "guidance_scale": 10,
