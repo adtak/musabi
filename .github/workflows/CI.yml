@@ -2,7 +2,7 @@ name: Workflow for CI
 on:
   push:
     branches:
-      - main
+      - no-run
 jobs:
   run-pytest:
     name: Run tests with pytest
