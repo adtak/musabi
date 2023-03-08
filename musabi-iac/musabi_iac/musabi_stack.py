@@ -87,7 +87,7 @@ class MusabiStack(Stack):
                 "ProcessingResources": {
                     "ClusterConfig": {
                         "InstanceCount": 1,
-                        "InstanceType": "ml.g4dn.12xlarge",
+                        "InstanceType": "ml.p3.2xlarge",
                         "VolumeSizeInGB": 1,
                     }
                 },
