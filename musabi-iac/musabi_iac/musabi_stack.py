@@ -3,6 +3,7 @@ from typing import Any, Dict
 import aws_cdk.aws_ecr as ecr
 import aws_cdk.aws_iam as iam
 import aws_cdk.aws_lambda as lambda_
+import aws_cdk.aws_lambda_python_alpha as lambda_python
 import aws_cdk.aws_s3 as s3
 import aws_cdk.aws_stepfunctions as sfn
 import aws_cdk.aws_stepfunctions_tasks as tasks
@@ -18,13 +19,10 @@ class MusabiStack(Stack):
         self.generate_image_repository = self.create_ecr_repository(
             "GenerateImageRepository", "generate-image-repository"
         )
-        self.publish_image_repository = self.create_ecr_repository(
-            "PublishImageRepository", "publish-image-repository"
-        )
         self.publish_image_function = self.create_lambda()
         self.create_statemachine()
 
-    def create_s3_bucket(self, bucket_prefix: str) -> Dict[str, Any]:
+    def create_s3_bucket(self, bucket_prefix: str) -> s3.Bucket:
         params = {
             "removal_policy": RemovalPolicy.DESTROY,
             "auto_delete_objects": True,
@@ -54,15 +52,27 @@ class MusabiStack(Stack):
             image_scan_on_push=False,
         )
 
-    def create_lambda(self):
-        return lambda_.Function(
+    def create_lambda(self) -> lambda_python.PythonFunction:
+        lambda_function = lambda_python.PythonFunction(
             self,
             "PublishImageLambda",
-            code=lambda_.Code.from_ecr_image(self.ecr_repository),
-            runtime=lambda_.Runtime.FROM_IMAGE,
-            handler=lambda_.Handler.FROM_IMAGE,
-            environment={},
+            entry="musabi_iac/lambda_handler",
+            index="publish_image.py",
+            handler="handler",
+            runtime=lambda_.Runtime.PYTHON_3_9,
+            memory_size=256,
+            environment={
+                "ImageBucket": self.output_bucket.bucket_name,
+            },
         )
+        lambda_function.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["s3:GetObject"],
+                resources=[self.output_bucket.arn_for_objects("*")],
+            )
+        )
+        return lambda_function
 
     def create_statemachine(self):
         preprocess_step = self._create_preprocess_task()
@@ -90,11 +100,7 @@ class MusabiStack(Stack):
             self,
             "PublishImage",
             lambda_function=self.publish_image_function,
-            payload=sfn.TaskInput.from_object(
-                {
-                    "ImagePath": "",
-                }
-            ),
+            payload=sfn.TaskInput.from_object({"Key": ""}),
             integration_pattern=sfn.IntegrationPattern.REQUEST_RESPONSE,
         )
 
@@ -104,7 +110,9 @@ class MusabiStack(Stack):
             "Resource": "arn:aws:states:::sagemaker:createProcessingJob.sync",
             "Parameters": {
                 "AppSpecification": {
-                    "ImageUri": self.ecr_repository.repository_uri_for_tag("latest")
+                    "ImageUri": self.generate_image_repository.repository_uri_for_tag(
+                        "latest"
+                    )
                 },
                 "Environment": {
                     "PROMPT.$": "$.Prompt",
