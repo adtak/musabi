@@ -5,6 +5,7 @@ import aws_cdk.aws_iam as iam
 import aws_cdk.aws_s3 as s3
 import aws_cdk.aws_stepfunctions as sfn
 import aws_cdk.aws_stepfunctions_tasks as tasks
+import aws_cdk.aws_lambda as lambda_
 from aws_cdk import Duration, RemovalPolicy, Stack
 from constructs import Construct
 
@@ -15,6 +16,7 @@ class MusabiStack(Stack):
         self.input_bucket = self.create_s3_bucket("Input")
         self.output_bucket = self.create_s3_bucket("Output")
         self.ecr_repository = self.create_ecr_repository()
+        self.lambda_ = self.create_lambda()
         self.create_statemachine()
 
     def create_s3_bucket(self, bucket_prefix: str) -> Dict[str, Any]:
@@ -45,6 +47,16 @@ class MusabiStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
             lifecycle_rules=[lifecycle_rule],
             image_scan_on_push=False,
+        )
+    
+    def create_lambda(self):
+        return lambda_.Function(
+            self,
+            "Lambda",
+            runtime=lambda_.Runtime.PYTHON_3_9,
+            code=lambda_.Code.from_asset(""),
+            handler="pyfile.handler",
+            environment={}
         )
 
     def create_statemachine(self):
