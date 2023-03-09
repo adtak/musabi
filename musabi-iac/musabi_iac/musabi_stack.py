@@ -2,10 +2,10 @@ from typing import Any, Dict
 
 import aws_cdk.aws_ecr as ecr
 import aws_cdk.aws_iam as iam
+import aws_cdk.aws_lambda as lambda_
 import aws_cdk.aws_s3 as s3
 import aws_cdk.aws_stepfunctions as sfn
 import aws_cdk.aws_stepfunctions_tasks as tasks
-import aws_cdk.aws_lambda as lambda_
 from aws_cdk import Duration, RemovalPolicy, Stack
 from constructs import Construct
 
@@ -15,8 +15,13 @@ class MusabiStack(Stack):
         super().__init__(scope, id, **kwargs)
         self.input_bucket = self.create_s3_bucket("Input")
         self.output_bucket = self.create_s3_bucket("Output")
-        self.ecr_repository = self.create_ecr_repository()
-        self.lambda_ = self.create_lambda()
+        self.generate_image_repository = self.create_ecr_repository(
+            "GenerateImageRepository", "generate-image-repository"
+        )
+        self.publish_image_repository = self.create_ecr_repository(
+            "PublishImageRepository", "publish-image-repository"
+        )
+        self.publish_image_function = self.create_lambda()
         self.create_statemachine()
 
     def create_s3_bucket(self, bucket_prefix: str) -> Dict[str, Any]:
@@ -33,7 +38,7 @@ class MusabiStack(Stack):
         }
         return s3.Bucket(self, f"{bucket_prefix}MusabiBucket", **params)
 
-    def create_ecr_repository(self) -> ecr.Repository:
+    def create_ecr_repository(self, id: str, name: str) -> ecr.Repository:
         lifecycle_rule = ecr.LifecycleRule(
             description="Keep only one image.",
             max_image_count=1,
@@ -42,27 +47,28 @@ class MusabiStack(Stack):
         )
         return ecr.Repository(
             self,
-            "MusabiRepository",
-            repository_name="musabi-bot-repository",
+            id,
+            repository_name=name,
             removal_policy=RemovalPolicy.DESTROY,
             lifecycle_rules=[lifecycle_rule],
             image_scan_on_push=False,
         )
-    
+
     def create_lambda(self):
         return lambda_.Function(
             self,
-            "Lambda",
-            runtime=lambda_.Runtime.PYTHON_3_9,
-            code=lambda_.Code.from_asset(""),
-            handler="pyfile.handler",
-            environment={}
+            "PublishImageLambda",
+            code=lambda_.Code.from_ecr_image(self.ecr_repository),
+            runtime=lambda_.Runtime.FROM_IMAGE,
+            handler=lambda_.Handler.FROM_IMAGE,
+            environment={},
         )
 
     def create_statemachine(self):
+        preprocess_step = self._create_preprocess_task()
+        publish_image_step = self._create_lambda_task()
         success_step = sfn.Succeed(self, "Succeded")
-        preprocess_step = self._create_task()
-        definition = preprocess_step.next(success_step)
+        definition = preprocess_step.next(publish_image_step).next(success_step)
         sfn.StateMachine(
             self,
             "MusabiStateMachine",
@@ -72,11 +78,24 @@ class MusabiStack(Stack):
             role=self._get_statemachine_role(),
         )
 
-    def _create_task(self) -> sfn.CustomState:
+    def _create_preprocess_task(self) -> sfn.CustomState:
         return sfn.CustomState(
             self,
             "SagemakerProcessingTask",
             state_json=self._create_processing_job_state(),
+        )
+
+    def _create_lambda_task(self):
+        return tasks.LambdaInvoke(
+            self,
+            "PublishImage",
+            lambda_function=self.publish_image_function,
+            payload=sfn.TaskInput.from_object(
+                {
+                    "ImagePath": "",
+                }
+            ),
+            integration_pattern=sfn.IntegrationPattern.REQUEST_RESPONSE,
         )
 
     def _create_processing_job_state(self) -> Dict[str, Any]:
