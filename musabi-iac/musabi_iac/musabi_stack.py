@@ -100,7 +100,13 @@ class MusabiStack(Stack):
             self,
             "PublishImage",
             lambda_function=self.publish_image_function,
-            payload=sfn.TaskInput.from_object({"Key": ""}),
+            payload=sfn.TaskInput.from_object(
+                {
+                    "ImageKey": sfn.JsonPath.format(
+                        "{}/image_0.png", sfn.JsonPath.string_at("$$.Execution.Name")
+                    )
+                }
+            ),
             integration_pattern=sfn.IntegrationPattern.REQUEST_RESPONSE,
         )
 
