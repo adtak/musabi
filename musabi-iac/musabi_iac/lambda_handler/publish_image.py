@@ -4,21 +4,9 @@ import pprint
 import time
 from typing import Any, Dict
 
+import boto3
 import requests
-
-
-def lambda_handler(event, context):
-    main()
-
-
-def main() -> None:
-    client = Client(Config())
-    response = upload_image(
-        client,
-        image_url="",
-        caption="",
-    )
-    pprint.pprint(response)
+from botocore.exceptions import ClientError
 
 
 class Config:
@@ -31,6 +19,36 @@ class Config:
     @property
     def endpoint_base(self) -> str:
         return f"{self.graph_url}/{self.version}/"
+
+
+def handler(event, context):
+    main(event)
+
+
+def main(event) -> None:
+    # client = Client(Config())
+    url = create_presigned_url(os.environ["ImageBucket"], event.get("ImageKey"))
+    pprint(url)
+    # response = upload_image(
+    #     client,
+    #     image_url=url,
+    #     caption="",
+    # )
+    # pprint.pprint(response)
+    return {"statusCode": 200, "headers": {}, "body": "{}", "isBase64Encode": False}
+
+
+def create_presigned_url(bucket_name, object_name, expiration=300):
+    s3_client = boto3.client("s3")
+    try:
+        response = s3_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": bucket_name, "Key": object_name},
+            ExpiresIn=expiration,
+        )
+    except ClientError as e:
+        return None
+    return response
 
 
 def call_api(url: str, method: str, request: Dict[str, Any]) -> Any:
