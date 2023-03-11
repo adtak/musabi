@@ -72,6 +72,13 @@ class MusabiStack(Stack):
                 resources=[self.output_bucket.arn_for_objects("*")],
             )
         )
+        lambda_function.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["ssm:GetParameter"],
+                resources=[f"arn:aws:ssm:ap-northeast-1:{self.account}:parameter/meta/musabi/*"],
+            )
+        )
         return lambda_function
 
     def create_statemachine(self):
