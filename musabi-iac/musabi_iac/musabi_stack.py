@@ -61,6 +61,7 @@ class MusabiStack(Stack):
             handler="handler",
             runtime=lambda_.Runtime.PYTHON_3_9,
             memory_size=256,
+            timeout=Duration.minutes(3),
             environment={
                 "ImageBucket": self.output_bucket.bucket_name,
             },
