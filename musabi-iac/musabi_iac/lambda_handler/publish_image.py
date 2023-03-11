@@ -151,6 +151,7 @@ def create_presigned_url(bucket_name, object_name, expiration=300):
 
 
 def call_api(url: str, method: str, request: Dict[str, Any]) -> Any:
+    print(f"Request URL: ({method}) {url}")
     if method == "GET":
         response = requests.get(url, request)
     elif method == "POST":

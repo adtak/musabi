@@ -23,6 +23,7 @@ class Config:
 
 
 def call_api(url: str, method: str, request: Dict[str, Any]) -> Any:
+    print(f"Request URL: ({method}) {url}")
     if method == "GET":
         response = requests.get(url, request)
     elif method == "POST":
@@ -36,7 +37,7 @@ class Client:
     def __init__(self, config: Config) -> None:
         self.config = config
 
-    def get_medias(self, paging_url: Optional[str] = None) -> Any:
+    def get_user_media(self, paging_url: Optional[str] = None) -> Any:
         request = {
             "access_token": self.config.access_token,
             "fields": ",".join(
