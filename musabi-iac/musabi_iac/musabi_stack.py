@@ -76,7 +76,9 @@ class MusabiStack(Stack):
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 actions=["ssm:GetParameter"],
-                resources=[f"arn:aws:ssm:ap-northeast-1:{self.account}:parameter/meta/musabi/*"],
+                resources=[
+                    f"arn:aws:ssm:ap-northeast-1:{self.account}:parameter/meta/musabi/*"
+                ],
             )
         )
         return lambda_function

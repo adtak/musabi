@@ -1,7 +1,6 @@
 import json
 import os
 import time
-from pprint import pprint
 from typing import Any, Dict
 
 import boto3
@@ -115,7 +114,7 @@ def main(event) -> None:
     #     image_url=url,
     #     caption="",
     # )
-    pprint(response)
+    print(response)
     return {"statusCode": 200, "headers": {}, "body": "{}", "isBase64Encode": False}
 
 
@@ -123,7 +122,6 @@ def upload_image(client: Client, image_url: str, caption: str) -> Any:
     conainer_id = client.create_media(image_url=image_url, caption=caption)["id"]
     status_code = "IN_PROGRESS"
     while status_code != "FINISHED":
-        pprint(status_code)
         status_code = client.get_container_status(container_id=conainer_id)[
             "status_code"
         ]
@@ -134,7 +132,8 @@ def upload_image(client: Client, image_url: str, caption: str) -> Any:
 
 def get_ssm_parameter(name: str):
     ssm = boto3.client("ssm")
-    return ssm.get_parameter(Name=name, WithDecryption=False)["Parameter"]["Value"]
+    value = ssm.get_parameter(Name=name, WithDecryption=False)["Parameter"]["Value"]
+    return value
 
 
 def create_presigned_url(bucket_name, object_name, expiration=300):
@@ -147,7 +146,7 @@ def create_presigned_url(bucket_name, object_name, expiration=300):
         )
     except ClientError as e:
         return None
-    pprint(f"Generated URL: {url}")
+    print(f"Generated URL: {url}")
     return url
 
 
