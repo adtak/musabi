@@ -1,7 +1,7 @@
 import json
 import os
-import pprint
 import time
+from pprint import pprint
 from typing import Any, Dict
 
 import boto3
@@ -11,67 +11,14 @@ from botocore.exceptions import ClientError
 
 class Config:
     def __init__(self) -> None:
-        self.access_token = os.environ["ACCESS_TOKEN"]
-        self.account_id = os.environ["ACCOUNT_ID"]
-        self.version = os.environ["VERSION"]
-        self.graph_url = os.environ["GRAPH_URL"]
+        self.access_token = get_ssm_parameter("/meta/musabi/access-token")
+        self.account_id = get_ssm_parameter("/meta/musabi/account-id")
+        self.version = get_ssm_parameter("/meta/musabi/version")
+        self.graph_url = get_ssm_parameter("/meta/musabi/graph-url")
 
     @property
     def endpoint_base(self) -> str:
         return f"{self.graph_url}/{self.version}/"
-
-
-def handler(event, context):
-    main(event)
-
-
-def main(event) -> None:
-    # client = Client(Config())
-    url = create_presigned_url(os.environ["ImageBucket"], event.get("ImageKey"))
-    pprint(url)
-    # response = upload_image(
-    #     client,
-    #     image_url=url,
-    #     caption="",
-    # )
-    # pprint.pprint(response)
-    return {"statusCode": 200, "headers": {}, "body": "{}", "isBase64Encode": False}
-
-
-def create_presigned_url(bucket_name, object_name, expiration=300):
-    s3_client = boto3.client("s3")
-    try:
-        response = s3_client.generate_presigned_url(
-            "get_object",
-            Params={"Bucket": bucket_name, "Key": object_name},
-            ExpiresIn=expiration,
-        )
-    except ClientError as e:
-        return None
-    return response
-
-
-def call_api(url: str, method: str, request: Dict[str, Any]) -> Any:
-    if method == "GET":
-        response = requests.get(url, request)
-    elif method == "POST":
-        response = requests.post(url, request)
-    else:
-        raise ValueError("Method not supported.")
-    return json.loads(response.content)
-
-
-def upload_image(client: "Client", image_url: str, caption: str) -> Any:
-    conainer_id = client.create_media(image_url=image_url, caption=caption)["id"]
-    status_code = "IN_PROGRESS"
-    while status_code != "FINISHED":
-        print(status_code)
-        status_code = client.get_container_status(container_id=conainer_id)[
-            "status_code"
-        ]
-        time.sleep(3)
-    media_id = client.publish_media(creation_id=conainer_id)["id"]
-    return client.get_media(media_id=media_id)
 
 
 class Client:
@@ -134,3 +81,63 @@ class Client:
             "fields": ",".join(["config", "quota_usage"]),
         }
         return call_api(url, "GET", request)
+
+
+def handler(event, context):
+    main(event)
+
+
+def main(event) -> None:
+    # client = Client(Config())
+    url = create_presigned_url(os.environ["ImageBucket"], event.get("ImageKey"))
+    pprint(url)
+    # response = upload_image(
+    #     client,
+    #     image_url=url,
+    #     caption="",
+    # )
+    # pprint.pprint(response)
+    return {"statusCode": 200, "headers": {}, "body": "{}", "isBase64Encode": False}
+
+
+def get_ssm_parameter(name: str):
+    ssm = boto3.client("ssm")
+    return ssm.get_parameter(Name=name, WithDecryption=False)[
+        "Parameter"
+    ]["Value"]
+
+
+def create_presigned_url(bucket_name, object_name, expiration=300):
+    s3_client = boto3.client("s3")
+    try:
+        response = s3_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": bucket_name, "Key": object_name},
+            ExpiresIn=expiration,
+        )
+    except ClientError as e:
+        return None
+    return response
+
+
+def call_api(url: str, method: str, request: Dict[str, Any]) -> Any:
+    if method == "GET":
+        response = requests.get(url, request)
+    elif method == "POST":
+        response = requests.post(url, request)
+    else:
+        raise ValueError("Method not supported.")
+    return json.loads(response.content)
+
+
+def upload_image(client: "Client", image_url: str, caption: str) -> Any:
+    conainer_id = client.create_media(image_url=image_url, caption=caption)["id"]
+    status_code = "IN_PROGRESS"
+    while status_code != "FINISHED":
+        print(status_code)
+        status_code = client.get_container_status(container_id=conainer_id)[
+            "status_code"
+        ]
+        time.sleep(3)
+    media_id = client.publish_media(creation_id=conainer_id)["id"]
+    return client.get_media(media_id=media_id)
