@@ -4,6 +4,7 @@ import time
 from typing import Any, Dict
 
 import boto3
+import botocore
 import requests
 from botocore.exceptions import ClientError
 
@@ -108,12 +109,12 @@ def handler(event, context):
 def main(event) -> None:
     client = Client(Config())
     url = create_presigned_url(os.environ["ImageBucket"], event.get("ImageKey"))
-    response = client.get_user_media()
-    # response = upload_image(
-    #     client,
-    #     image_url=url,
-    #     caption="",
-    # )
+    # response = client.get_user_media()
+    response = upload_image(
+        client,
+        image_url=url,
+        caption="This sneaker does not exist.",
+    )
     print(response)
     return {"statusCode": 200, "headers": {}, "body": "{}", "isBase64Encode": False}
 
@@ -137,7 +138,9 @@ def get_ssm_parameter(name: str):
 
 
 def create_presigned_url(bucket_name, object_name, expiration=300):
-    s3_client = boto3.client("s3")
+    s3_client = boto3.client(
+        "s3", config=botocore.client.Config(signature_version="s3v4")
+    )
     try:
         url = s3_client.generate_presigned_url(
             "get_object",
