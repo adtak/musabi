@@ -1,6 +1,8 @@
 from typing import Any, Dict
 
 import aws_cdk.aws_ecr as ecr
+import aws_cdk.aws_events as events
+import aws_cdk.aws_events_targets as targets
 import aws_cdk.aws_iam as iam
 import aws_cdk.aws_lambda as lambda_
 import aws_cdk.aws_lambda_python_alpha as lambda_python
@@ -20,7 +22,8 @@ class MusabiStack(Stack):
             "GenerateImageRepository", "generate-image-repository"
         )
         self.publish_image_function = self.create_lambda()
-        self.create_statemachine()
+        self.state_machine = self.create_statemachine()
+        self.create_event()
 
     def create_s3_bucket(self, bucket_prefix: str) -> s3.Bucket:
         params = {
@@ -84,18 +87,50 @@ class MusabiStack(Stack):
         )
         return lambda_function
 
-    def create_statemachine(self):
+    def create_statemachine(self) -> sfn.StateMachine:
         preprocess_step = self._create_preprocess_task()
         publish_image_step = self._create_lambda_task()
         success_step = sfn.Succeed(self, "Succeded")
         definition = preprocess_step.next(publish_image_step).next(success_step)
-        sfn.StateMachine(
+        return sfn.StateMachine(
             self,
             "MusabiStateMachine",
             state_machine_name="musabi-bot-statemachine",
             definition=definition,
             timeout=Duration.minutes(30),
             role=self._get_statemachine_role(),
+        )
+
+    def create_event(self) -> None:
+        events.Rule(
+            self,
+            "MusabiEventsRule",
+            schedule=events.Schedule.cron(minute="0"),
+            targets=[
+                targets.SfnStateMachine(
+                    self.state_machine,
+                    input=events.RuleTargetInput.from_object(
+                        {
+                            "Comment": "Insert your JSON here",
+                            "Prompt": (
+                                "this sneaker does not exists, marketing, magazine,"
+                                " old school, best quality, ultra high res,"
+                                " (photorealistic:1.4)"
+                            ),
+                            "NegativePrompt": (
+                                "paintings, sketches, (worst quality:2),(low"
+                                " quality:2), (normal quality:2), lowres,normal"
+                                " quality, ((monochrome)), ((grayscale)), skin"
+                                " spots,acnes, skin blemishes, age spot, glans"
+                            ),
+                            "Width": "800",
+                            "Height": "800",
+                        }
+                    ),
+                    max_event_age=Duration.minutes(15),
+                    retry_attempts=0,
+                )
+            ],
         )
 
     def _create_preprocess_task(self) -> sfn.CustomState:
