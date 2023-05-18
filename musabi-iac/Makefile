@@ -3,7 +3,7 @@
 format: black isort
 
 black:
-				poetry run black . --experimental-string-processing
+				poetry run black . --preview
 
 isort:
 				poetry run isort .
