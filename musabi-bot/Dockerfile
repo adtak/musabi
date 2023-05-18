@@ -2,6 +2,8 @@ FROM python:3.9.15-buster
 
 WORKDIR /app
 
+RUN apt update && apt upgrade -y
+
 COPY pyproject.toml poetry.lock setup.cfg ./
 COPY musabi_bot/ ./musabi_bot/
 
