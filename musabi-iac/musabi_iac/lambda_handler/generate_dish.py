@@ -6,7 +6,7 @@ import openai
 
 class Config:
     def __init__(self) -> None:
-        self.api_key = get_ssm_parameter("/openapi/musabi/api-key")
+        self.api_key = get_ssm_parameter("/openai/musabi/api-key")
 
 
 def get_ssm_parameter(name: str):
@@ -16,7 +16,7 @@ def get_ssm_parameter(name: str):
 
 
 def handler(event, context):
-    main(event)
+    return main(event)
 
 
 def send_request(system_content: str, user_content: str):
@@ -59,4 +59,4 @@ def main(event):
         "Recipe": recipe,
     }
     print(results)
-    return {"statusCode": 200, "headers": {}, "body": "{}", "isBase64Encode": False}
+    return results

@@ -116,7 +116,7 @@ def main(event) -> None:
         caption="This sneaker does not exist.",
     )
     print(response)
-    return {"statusCode": 200, "headers": {}, "body": "{}", "isBase64Encode": False}
+    return {}
 
 
 def upload_image(client: Client, image_url: str, caption: str) -> Any:

@@ -21,7 +21,8 @@ class MusabiStack(Stack):
         self.generate_image_repository = self.create_ecr_repository(
             "GenerateImageRepository", "generate-image-repository"
         )
-        self.publish_image_function = self.create_lambda()
+        self.generate_dish_function = self.create_generate_dish_lambda()
+        self.publish_image_function = self.create_publish_image_lambda()
         self.state_machine = self.create_statemachine()
         self.create_event()
 
@@ -55,7 +56,29 @@ class MusabiStack(Stack):
             image_scan_on_push=False,
         )
 
-    def create_lambda(self) -> lambda_python.PythonFunction:
+    def create_generate_dish_lambda(self) -> lambda_python.PythonFunction:
+        lambda_function = lambda_python.PythonFunction(
+            self,
+            "GenerateDishLambda",
+            entry="musabi_iac/lambda_handler",
+            index="generate_dish.py",
+            handler="handler",
+            runtime=lambda_.Runtime.PYTHON_3_9,
+            memory_size=256,
+            timeout=Duration.minutes(3),
+        )
+        lambda_function.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["ssm:GetParameter"],
+                resources=[
+                    f"arn:aws:ssm:ap-northeast-1:{self.account}:parameter/openai/musabi/*"
+                ],
+            )
+        )
+        return lambda_function
+
+    def create_publish_image_lambda(self) -> lambda_python.PythonFunction:
         lambda_function = lambda_python.PythonFunction(
             self,
             "PublishImageLambda",
@@ -88,10 +111,15 @@ class MusabiStack(Stack):
         return lambda_function
 
     def create_statemachine(self) -> sfn.StateMachine:
+        generate_dish_step = self._create_generate_dish_lambda_task()
         preprocess_step = self._create_preprocess_task()
-        publish_image_step = self._create_lambda_task()
+        publish_image_step = self._create_publish_image_lambda_task()
         success_step = sfn.Succeed(self, "Succeded")
-        definition = preprocess_step.next(publish_image_step).next(success_step)
+        definition = (
+            generate_dish_step.next(preprocess_step)
+            .next(publish_image_step)
+            .next(success_step)
+        )
         return sfn.StateMachine(
             self,
             "MusabiStateMachine",
@@ -140,7 +168,16 @@ class MusabiStack(Stack):
             state_json=self._create_processing_job_state(),
         )
 
-    def _create_lambda_task(self):
+    def _create_generate_dish_lambda_task(self):
+        return tasks.LambdaInvoke(
+            self,
+            "GenerateDish",
+            lambda_function=self.generate_dish_function,
+            integration_pattern=sfn.IntegrationPattern.REQUEST_RESPONSE,
+            result_path="$.GenerateDishResults",
+        )
+
+    def _create_publish_image_lambda_task(self):
         return tasks.LambdaInvoke(
             self,
             "PublishImage",
