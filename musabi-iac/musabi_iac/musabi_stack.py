@@ -117,7 +117,7 @@ class MusabiStack(Stack):
         success_step = sfn.Succeed(self, "Succeded")
         definition = (
             generate_dish_step.next(preprocess_step)
-            .next(publish_image_step)
+            # .next(publish_image_step)
             .next(success_step)
         )
         return sfn.StateMachine(
@@ -141,13 +141,11 @@ class MusabiStack(Stack):
                         {
                             "Comment": "Insert your JSON here",
                             "Prompt": (
-                                "this sneaker does not exists, marketing, magazine,"
-                                " old school, best quality, ultra high res,"
-                                " (photorealistic:1.4)"
+                                "best quality, ultra high res, (photorealistic:1.4)"
                             ),
                             "NegativePrompt": (
-                                "paintings, sketches, (worst quality:2),(low"
-                                " quality:2), (normal quality:2), lowres,normal"
+                                "paintings, sketches, (worst quality:2), (low"
+                                " quality:2), (normal quality:2), lowres, normal"
                                 " quality, ((monochrome)), ((grayscale)), skin"
                                 " spots,acnes, skin blemishes, age spot, glans"
                             ),
@@ -203,7 +201,10 @@ class MusabiStack(Stack):
                     )
                 },
                 "Environment": {
-                    "PROMPT.$": "$.Prompt",
+                    "PROMPT.$": (
+                        "States.Format('{}, {}',"
+                        " $.GenerateDishResults.Payload.EngDishName, $.Prompt)"
+                    ),
                     "NEGATIVE_PROMPT.$": "$.NegativePrompt",
                     "WIDTH.$": "$.Width",
                     "HEIGHT.$": "$.Height",
@@ -248,6 +249,7 @@ class MusabiStack(Stack):
                 "RoleArn": self._get_sagemaker_processing_job_role().role_arn,
                 "StoppingCondition": {"MaxRuntimeInSeconds": 600},
             },
+            "ResultPath": "$.PreprocessingResults",
         }
 
     def _get_statemachine_role(self) -> iam.Role:
