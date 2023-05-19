@@ -117,7 +117,7 @@ class MusabiStack(Stack):
         success_step = sfn.Succeed(self, "Succeded")
         definition = (
             generate_dish_step.next(preprocess_step)
-            # .next(publish_image_step)
+            .next(publish_image_step)
             .next(success_step)
         )
         return sfn.StateMachine(
@@ -184,7 +184,9 @@ class MusabiStack(Stack):
                 {
                     "ImageKey": sfn.JsonPath.format(
                         "{}/image_0.png", sfn.JsonPath.string_at("$$.Execution.Name")
-                    )
+                    ),
+                    "DishName": sfn.JsonPath.string_at("$.GenerateDishResults.Payload.DishName"),
+                    "Recipe": sfn.JsonPath.string_at("$.GenerateDishResults.Payload.Recipe")
                 }
             ),
             integration_pattern=sfn.IntegrationPattern.REQUEST_RESPONSE,
