@@ -123,7 +123,9 @@ def main(event) -> None:
 
 
 def upload_image(client: Client, image_url: str, caption: str) -> Any:
-    conainer_id = client.create_media(image_url=image_url, caption=caption)["id"]
+    response = client.create_media(image_url=image_url, caption=caption)
+    print(response)
+    conainer_id = response["id"]
     status_code = "IN_PROGRESS"
     while status_code != "FINISHED":
         status_code = client.get_container_status(container_id=conainer_id)[

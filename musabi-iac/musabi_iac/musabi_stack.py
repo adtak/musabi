@@ -133,7 +133,7 @@ class MusabiStack(Stack):
         events.Rule(
             self,
             "MusabiEventsRule",
-            schedule=events.Schedule.cron(hour="*/12", minute="0"),
+            schedule=events.Schedule.cron(hour="*/6", minute="0"),
             targets=[
                 targets.SfnStateMachine(
                     self.state_machine,
@@ -212,7 +212,7 @@ class MusabiStack(Stack):
                     "HEIGHT.$": "$.Height",
                 },
                 "ProcessingJobName.$": (
-                    "States.Format('PreprocessingJob-{}', $$.Execution.Name)"
+                    "States.Format('PreprocessingJob-{}', States.UUID())"
                 ),
                 "ProcessingResources": {
                     "ClusterConfig": {
