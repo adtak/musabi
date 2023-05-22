@@ -113,10 +113,11 @@ def main(event) -> None:
     comments = "※このレシピはAIによって自動で作成されたものです。\nレシピの内容について確認はしていないため、食べられる料理が作成できない恐れがあります。"
     dish_name = event.get("DishName")
     recipe = event.get("Recipe")
+    hashtag = "#レシピ #AI #AIレシピ"
     response = upload_image(
         client,
         image_url=url,
-        caption=f"\n{dish_name}\n\n{comments}\n\n{recipe}",
+        caption=f"\n{dish_name}\n\n{comments}\n\n{recipe}\n\n{hashtag}",
     )
     print(response)
     return {}
