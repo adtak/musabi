@@ -141,7 +141,8 @@ class MusabiStack(Stack):
                         {
                             "Comment": "Insert your JSON here",
                             "Prompt": (
-                                "best quality, ultra high res, (photorealistic:1.4)"
+                                "best quality, ultra high res, (photorealistic:1.4), a"
+                                " very delicious-looking dish,"
                             ),
                             "NegativePrompt": (
                                 "paintings, sketches, (worst quality:2), (low"
@@ -151,6 +152,7 @@ class MusabiStack(Stack):
                             ),
                             "Width": "800",
                             "Height": "800",
+                            "DryRun": False,
                         }
                     ),
                     max_event_age=Duration.minutes(15),
@@ -185,8 +187,13 @@ class MusabiStack(Stack):
                     "ImageKey": sfn.JsonPath.format(
                         "{}/image_0.png", sfn.JsonPath.string_at("$$.Execution.Name")
                     ),
-                    "DishName": sfn.JsonPath.string_at("$.GenerateDishResults.Payload.DishName"),
-                    "Recipe": sfn.JsonPath.string_at("$.GenerateDishResults.Payload.Recipe")
+                    "DishName": sfn.JsonPath.string_at(
+                        "$.GenerateDishResults.Payload.DishName"
+                    ),
+                    "Recipe": sfn.JsonPath.string_at(
+                        "$.GenerateDishResults.Payload.Recipe"
+                    ),
+                    "DryRun": sfn.JsonPath.string_at("$.DryRun"),
                 }
             ),
             integration_pattern=sfn.IntegrationPattern.REQUEST_RESPONSE,

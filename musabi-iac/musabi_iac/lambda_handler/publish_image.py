@@ -103,7 +103,10 @@ class Client:
 
 
 def handler(event, context):
-    main(event)
+    if event.get("DryRun"):
+        return {}
+    else:
+        main(event)
 
 
 def main(event) -> None:

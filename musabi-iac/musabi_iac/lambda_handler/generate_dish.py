@@ -38,7 +38,7 @@ def generate_dish_name():
 
 
 def translate_dish_name(dish_name):
-    content = send_request("英語に翻訳してください。", dish_name)
+    content = send_request("次の料理名を英語に翻訳してください。", dish_name)
     return content
 
 
