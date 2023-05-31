@@ -5,7 +5,7 @@ from diffusers import StableDiffusionPipeline
 
 
 def main() -> None:
-    model_id = "dreamlike-art/dreamlike-photoreal-2.0"
+    model_id = "XpucT/Deliberate"
     device = "cuda"
     pipe = StableDiffusionPipeline.from_pretrained(
         model_id, torch_dtype=torch.float16

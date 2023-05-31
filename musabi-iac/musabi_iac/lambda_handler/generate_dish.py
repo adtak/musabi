@@ -32,7 +32,7 @@ def send_request(system_content: str, user_content: str):
 
 def generate_dish_name():
     content = send_request(
-        "日本語で返答してください。", "オリジナリティのある料理名を一つ教えてください。返答は料理名のみを「」で囲って返答してください。"
+        "日本語で返答してください。", "オリジナリティのあるお菓子の名前を一つ教えてください。返答はお菓子の名前のみを「」で囲って返答してください。"
     )
     return re.findall(r"「(.*)」", content)[0]
 
@@ -43,7 +43,7 @@ def translate_dish_name(dish_name):
 
 
 def generate_recipe(dish_name):
-    content = send_request("日本語で返答してください。", f"「{dish_name}」のレシピを教えてください。")
+    content = send_request("日本語で返答してください。", f"「{dish_name}」というお菓子のレシピを教えてください。")
     return content
 
 
