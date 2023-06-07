@@ -112,7 +112,7 @@ class MusabiStack(Stack):
 
     def create_statemachine(self) -> sfn.StateMachine:
         generate_dish_step = self._create_generate_dish_lambda_task()
-        preprocess_step = self._create_preprocess_task()
+        preprocess_step = self._create_processing_task()
         publish_image_step = self._create_publish_image_lambda_task()
         success_step = sfn.Succeed(self, "Succeded")
         definition = (
@@ -140,15 +140,27 @@ class MusabiStack(Stack):
                     input=events.RuleTargetInput.from_object(
                         {
                             "Comment": "Insert your JSON here",
-                            "Prompt": (
-                                "best quality, ultra high res, (photorealistic:1.4), a"
-                                " very delicious-looking dish,"
+                            "Prompt": ", ".join(
+                                [
+                                    "best quality",
+                                    "ultra high res",
+                                    "(photorealistic:1.4)",
+                                    "a very delicious-looking sweets",
+                                    "a very delicious-looking desserts",
+                                ]
                             ),
-                            "NegativePrompt": (
-                                "paintings, sketches, (worst quality:2), (low"
-                                " quality:2), (normal quality:2), lowres, normal"
-                                " quality, ((monochrome)), ((grayscale)), skin"
-                                " spots,acnes, skin blemishes, age spot, glans"
+                            "NegativePrompt": ", ".join(
+                                [
+                                    "paintings",
+                                    "sketches",
+                                    "(worst quality:2)",
+                                    "(low quality:2)",
+                                    "(normal quality:2)",
+                                    "lowres",
+                                    "normal quality",
+                                    "((monochrome))",
+                                    "((grayscale))",
+                                ]
                             ),
                             "Width": "800",
                             "Height": "800",
@@ -161,7 +173,7 @@ class MusabiStack(Stack):
             ],
         )
 
-    def _create_preprocess_task(self) -> sfn.CustomState:
+    def _create_processing_task(self) -> sfn.CustomState:
         return sfn.CustomState(
             self,
             "SagemakerProcessingTask",
