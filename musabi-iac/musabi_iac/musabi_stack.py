@@ -145,8 +145,8 @@ class MusabiStack(Stack):
                                     "best quality",
                                     "ultra high res",
                                     "(photorealistic:1.4)",
-                                    "a very delicious-looking sweets",
-                                    "a very delicious-looking desserts",
+                                    "a very delicious-looking cuisine",
+                                    "a very delicious-looking dish",
                                 ]
                             ),
                             "NegativePrompt": ", ".join(
