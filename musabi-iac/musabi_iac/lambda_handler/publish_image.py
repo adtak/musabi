@@ -113,7 +113,7 @@ def main(event) -> None:
     client = Client(Config())
     url = create_presigned_url(os.environ["ImageBucket"], event.get("ImageKey"))
     # response = client.get_user_media()
-    comments = "※このレシピはAIによって自動で作成されたものです。\nレシピの内容について確認はしていないため、食べられる料理が作成できない恐れがあります。"
+    comments = "※このレシピと写真はAIによって自動で作成されたものです。\nレシピの内容について確認はしていないため、食べられる料理が作成できない恐れがあります。"
     dish_name = event.get("DishName")
     recipe = event.get("Recipe")
     hashtag = "#レシピ #料理 #お菓子 #クッキング #AI #AIレシピ"
