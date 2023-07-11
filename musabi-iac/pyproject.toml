@@ -8,6 +8,7 @@ authors = ["adtak <adtak@adtak>"]
 python = "^3.9"
 aws-cdk-lib = "^2.68.0"
 aws-cdk-aws-lambda-python-alpha = "^2.68.0a0"
+openai = "^0.27.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "6.2.5"
