@@ -26,7 +26,7 @@ build:
 
 .PHONY: tag
 tag:
-				tag generate-image-repository:latest 589014808507.dkr.ecr.ap-northeast-1.amazonaws.com/generate-image-repository:latest
+				docker tag generate-image-repository:latest 589014808507.dkr.ecr.ap-northeast-1.amazonaws.com/generate-image-repository:latest
 
 .PHONY: push
 push:
