@@ -24,7 +24,7 @@ def main() -> None:
     images = pipe(**generate_params).images
     output_path = Path("/opt/ml/processing/output")
     for i, origin_image in enumerate(images):
-        title = os.environ.get("DISH_TITLE", "")
+        title = os.environ.get("DISH_NAME", "")
         write_title(
             origin_image.copy(),
             title,
