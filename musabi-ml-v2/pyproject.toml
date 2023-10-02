@@ -9,6 +9,7 @@ packages = [{include = "musabi_ml"}]
 python = "3.11.4"
 diffusers = "^0.12.1"
 torch = "^2.0.1"
+pillow = "^10.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
