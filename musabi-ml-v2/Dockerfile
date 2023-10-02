@@ -4,12 +4,12 @@ RUN apt update && apt upgrade -y
 ENV POETRY_HOME=/etc/poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH "$POETRY_HOME/venv/bin:$PATH"
-RUN mkdir ~/.fonts
 
 WORKDIR /app
 
 COPY pyproject.toml poetry.lock ./
 COPY musabi_ml/ ./musabi_ml/
+COPY fonts/ ./fonts/
 
 # RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
