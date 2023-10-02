@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import torch
 from diffusers import StableDiffusionPipeline
@@ -21,12 +22,14 @@ def main() -> None:
         "num_images_per_prompt": 1,
     }
     images = pipe(**generate_params).images
-    for i, image in enumerate(images):
+    output_path = Path("/opt/ml/processing/output")
+    for i, origin_image in enumerate(images):
         title = os.environ.get("DISH_TITLE", "")
         write_title(
-            image,
+            origin_image.copy(),
             title,
-        ).save(f"/opt/ml/processing/output/image_{i}.png")
+        ).save(output_path / f"{i}_image_1.png")
+        origin_image.save(output_path / f"{i}_image_2.png")
 
 
 if __name__ == "__main__":
