@@ -8,16 +8,14 @@ def main() -> None:
     model_id = "XpucT/Deliberate"
     device = "cuda"
     pipe = StableDiffusionPipeline.from_pretrained(
-        model_id, torch_dtype=torch.float16
+        model_id,
+        torch_dtype=torch.float16,
     ).to(device)
     generate_params = {
         "prompt": os.environ.get("PROMPT", "real photo"),
         "negative_prompt": os.environ.get("NEGATIVE_PROMPT", ""),
         "width": int(os.environ.get("WIDTH", "1080")),
         "height": int(os.environ.get("HEIGHT", "1080")),
-        # "max_embeddings_multiples": 2,
-        # "num_inference_steps": 30,
-        # "guidance_scale": 10,
         "num_images_per_prompt": 1,
     }
     images = pipe(**generate_params).images
