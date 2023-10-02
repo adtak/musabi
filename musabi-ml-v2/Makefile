@@ -1,15 +1,18 @@
-.PHONY: format black isort mypy test
+.PHONY: format
+format: black ruff
 
-format: black isort
-
+.PHONY: black
 black:
-				poetry run black .
+				poetry run black musabi_ml/*
 
-isort:
-				poetry run isort .
+.PHONY: ruff
+ruff:
+				poetry run ruff check musabi_ml/* --no-cache --fix
 
+.PHONY: mypy
 mypy:
 				poetry run mypy .
 
+.PHONY: test
 test:
 				poetry run pytest
