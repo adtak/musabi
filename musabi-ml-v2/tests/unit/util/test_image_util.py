@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import musabi_bot.util.image_util as image_util
+import musabi_ml.util.image_util as image_util
 
 
 def test_resize_images(
