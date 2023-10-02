@@ -1,14 +1,17 @@
-FROM python:3.9.15-buster
+FROM python:3.11.4-bullseye
+
+RUN apt update && apt upgrade -y
+ENV POETRY_HOME=/etc/poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH "$POETRY_HOME/venv/bin:$PATH"
+RUN mkdir ~/.fonts
 
 WORKDIR /app
 
-RUN apt update && apt upgrade -y
+COPY pyproject.toml poetry.lock ./
+COPY musabi_ml/ ./musabi_ml/
 
-COPY pyproject.toml poetry.lock setup.cfg ./
-COPY musabi_bot/ ./musabi_bot/
-
-RUN python -m pip install --upgrade pip && pip install poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
 
-ENTRYPOINT ["python3", "/app/musabi_bot/main.py"]
+ENTRYPOINT ["python3", "/app/musabi_ml/main.py"]
