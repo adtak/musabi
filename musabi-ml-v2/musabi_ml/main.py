@@ -3,6 +3,8 @@ import os
 import torch
 from diffusers import StableDiffusionPipeline
 
+from musabi_ml.image import write_title
+
 
 def main() -> None:
     model_id = "XpucT/Deliberate"
@@ -20,7 +22,11 @@ def main() -> None:
     }
     images = pipe(**generate_params).images
     for i, image in enumerate(images):
-        image.save(f"/opt/ml/processing/output/image_{i}.png")
+        title = os.environ.get("DISH_TITLE", "")
+        write_title(
+            image,
+            title,
+        ).save(f"/opt/ml/processing/output/image_{i}.png")
 
 
 if __name__ == "__main__":
