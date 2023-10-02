@@ -11,7 +11,7 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 COPY musabi_ml/ ./musabi_ml/
 
-RUN poetry config virtualenvs.create false
+# RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
 
-ENTRYPOINT ["python3", "/app/musabi_ml/main.py"]
+ENTRYPOINT ["poetry", "run", "python", "/app/musabi_ml/main.py"]
