@@ -229,6 +229,7 @@ class MusabiStack(Stack):
                     "NEGATIVE_PROMPT.$": "$.NegativePrompt",
                     "WIDTH.$": "$.Width",
                     "HEIGHT.$": "$.Height",
+                    "DISH_NAME": "$.GenerateDishResults.Payload.DishName",
                 },
                 "ProcessingJobName.$": (
                     "States.Format('PreprocessingJob-{}', States.UUID())"
