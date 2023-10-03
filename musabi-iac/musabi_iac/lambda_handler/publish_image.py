@@ -223,7 +223,7 @@ def call_api(url: str, method: str, request: Dict[str, Any]) -> Any:
     if method == "GET":
         response = requests.get(url, request)
     elif method == "POST":
-        response = requests.post(url, request)
+        response = requests.post(url, json=request)
     else:
         raise ValueError("Method not supported.")
     return json.loads(response.content)
