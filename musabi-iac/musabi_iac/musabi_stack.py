@@ -196,8 +196,11 @@ class MusabiStack(Stack):
             lambda_function=self.publish_image_function,
             payload=sfn.TaskInput.from_object(
                 {
+                    "TitleImageKey": sfn.JsonPath.format(
+                        "{}/0_image_1.png", sfn.JsonPath.string_at("$$.Execution.Name")
+                    ),
                     "ImageKey": sfn.JsonPath.format(
-                        "{}/image_0.png", sfn.JsonPath.string_at("$$.Execution.Name")
+                        "{}/0_image_2.png", sfn.JsonPath.string_at("$$.Execution.Name")
                     ),
                     "DishName": sfn.JsonPath.string_at(
                         "$.GenerateDishResults.Payload.DishName"

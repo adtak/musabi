@@ -63,13 +63,33 @@ class Client:
         }
         return call_api(url, "GET", request)
 
-    def create_media(self, image_url: str, caption: str) -> Any:
+    def create_image_media(
+        self,
+        image_url: str,
+        caption: str,
+        is_carousel_item: bool,
+    ) -> Any:
         url = self.config.endpoint_base + self.config.account_id + "/media"
         request = {
             "access_token": self.config.access_token,
             "image_url": image_url,
             "caption": caption,
-            "is_carousel_item": False,
+            "is_carousel_item": is_carousel_item,
+        }
+        return call_api(url, "POST", request)
+
+    def create_carousel_media(
+        self,
+        caption: str,
+        media_type: str,
+        children: list[str],
+    ) -> Any:
+        url = self.config.endpoint_base + self.config.account_id + "/media"
+        request = {
+            "access_token": self.config.access_token,
+            "caption": caption,
+            "media_type": media_type,
+            "children": children,
         }
         return call_api(url, "POST", request)
 
@@ -111,33 +131,68 @@ def handler(event, context):
 
 def main(event) -> None:
     client = Client(Config())
-    url = create_presigned_url(os.environ["ImageBucket"], event.get("ImageKey"))
-    # response = client.get_user_media()
-    comments = "※このレシピと写真はAIによって自動で作成されたものです。\nレシピの内容について確認はしていないため、食べられる料理が作成できない恐れがあります。"
+    title_image_url = create_presigned_url(
+        os.environ["ImageBucket"], event.get("TitleImageKey")
+    )
+    image_url = create_presigned_url(os.environ["ImageBucket"], event.get("ImageKey"))
+    comments = (
+        "※このレシピと写真はAIによって自動で作成されたものです。\nレシピの内容について確認はしていないため、食べられる料理が作成できない恐れがあります。"
+    )
     dish_name = event.get("DishName")
     recipe = event.get("Recipe")
     hashtag = "#レシピ #料理 #お菓子 #クッキング #AI #AIレシピ"
-    response = upload_image(
+    response = upload_images(
         client,
-        image_url=url,
+        image_urls=[title_image_url, image_url],
         caption=f"\n{dish_name}\n\n{comments}\n\n{recipe}\n\n{hashtag}",
     )
     print(response)
     return {}
 
 
-def upload_image(client: Client, image_url: str, caption: str) -> Any:
-    response = client.create_media(image_url=image_url, caption=caption)
+def upload_images(client: Client, image_urls: list[str], caption: str) -> Any:
+    container_ids = []
+    for image_url in image_urls:
+        response = client.create_image_media(
+            image_url=image_url,
+            caption=caption,
+            is_carousel_item=True,
+        )
+        print(response)
+        conainer_id = response["id"]
+        wait_container_finish(conainer_id)
+        container_ids.append(conainer_id)
+    response = client.create_carousel_media(
+        caption=caption, media_type="CAROUSEL", children=container_ids
+    )
     print(response)
     conainer_id = response["id"]
+    wait_container_finish(conainer_id)
+    media_id = client.publish_media(creation_id=conainer_id)["id"]
+    return client.get_media(media_id=media_id)
+
+
+def upload_image(client: Client, image_url: str, caption: str) -> Any:
+    response = client.create_image_media(
+        image_url=image_url,
+        caption=caption,
+        is_carousel_item=False,
+    )
+    print(response)
+    conainer_id = response["id"]
+    wait_container_finish(conainer_id)
+    media_id = client.publish_media(creation_id=conainer_id)["id"]
+    return client.get_media(media_id=media_id)
+
+
+def wait_container_finish(client: Client, container_id: str) -> None:
     status_code = "IN_PROGRESS"
     while status_code != "FINISHED":
-        status_code = client.get_container_status(container_id=conainer_id)[
+        status_code = client.get_container_status(container_id=container_id)[
             "status_code"
         ]
         time.sleep(3)
-    media_id = client.publish_media(creation_id=conainer_id)["id"]
-    return client.get_media(media_id=media_id)
+    return None
 
 
 def get_ssm_parameter(name: str):
@@ -157,7 +212,8 @@ def create_presigned_url(bucket_name, object_name, expiration=300):
             ExpiresIn=expiration,
         )
     except ClientError as e:
-        return None
+        print("Fail to generate Presigned-URL")
+        raise e
     print(f"Generated URL: {url}")
     return url
 
