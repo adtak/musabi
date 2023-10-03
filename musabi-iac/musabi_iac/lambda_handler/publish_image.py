@@ -160,14 +160,14 @@ def upload_images(client: Client, image_urls: list[str], caption: str) -> Any:
         )
         print(response)
         conainer_id = response["id"]
-        wait_container_finish(conainer_id)
+        wait_container_finish(client, conainer_id)
         container_ids.append(conainer_id)
     response = client.create_carousel_media(
         caption=caption, media_type="CAROUSEL", children=container_ids
     )
     print(response)
     conainer_id = response["id"]
-    wait_container_finish(conainer_id)
+    wait_container_finish(client, conainer_id)
     media_id = client.publish_media(creation_id=conainer_id)["id"]
     return client.get_media(media_id=media_id)
 
@@ -180,7 +180,7 @@ def upload_image(client: Client, image_url: str, caption: str) -> Any:
     )
     print(response)
     conainer_id = response["id"]
-    wait_container_finish(conainer_id)
+    wait_container_finish(client, conainer_id)
     media_id = client.publish_media(creation_id=conainer_id)["id"]
     return client.get_media(media_id=media_id)
 
