@@ -3,27 +3,55 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
 def write_title(image: Image, title: str) -> Image:
-    w, h = image.size
-    font_path = "fonts/mgenplus-1p-regular.ttf"
+    origin_image = image.convert("RGBA")
+    w, h = origin_image.size
+    font_path = "fonts/Bold.ttf"
 
-    logger.info(f"Title {title}")
+    logger.info(f"Title: {title}")
     logger.info(f"Image size: width {w} - height {h}")
 
-    blur_image = image.filter(ImageFilter.GaussianBlur(4))
-    draw = ImageDraw.Draw(blur_image)
-    textsize = calc_textsize(draw, title, w * 0.8, font_path)
-    font = ImageFont.truetype(font_path, textsize)
-    draw.text(
-        (w // 2, h // 2),
-        title,
-        "white",
-        font=font,
-        anchor="mm",
+    blur_image = origin_image.filter(ImageFilter.GaussianBlur(4))
+    title_image = create_title(w, h, title, font_path)
+
+    return Image.alpha_composite(blur_image, title_image)
+
+
+def create_title(
+    origin_w: int,
+    origin_h: int,
+    title: str,
+    font_path: str,
+) -> Image:
+    title_image = Image.new("RGBA", (origin_w, origin_h), (255, 255, 255, 0))
+    draw = ImageDraw.Draw(title_image)
+
+    fontsize = _calc_fontsize(draw, title, origin_w * 0.8, font_path)
+    title_params = {
+        "xy": (origin_w // 2, origin_h // 2),
+        "text": title,
+        "font": ImageFont.truetype(font_path, fontsize),
+        "anchor": "mm",
+    }
+    _, title_top, _, title_bottom = draw.textbbox(**title_params)
+    subtitle_params = {
+        "xy": (origin_w // 2, title_top),
+        "text": "AIが考えたレシピ",
+        "font": ImageFont.truetype(font_path, min(50, fontsize)),
+        "anchor": "md",
+    }
+    _, subtitle_top, _, _ = draw.textbbox(**subtitle_params)
+
+    draw.rounded_rectangle(
+        ((10, subtitle_top - 20), (790, title_bottom + 20)),
+        radius=50,
+        fill=(200, 200, 200, 200),
     )
-    return blur_image
+    draw.text(fill="white", **title_params)
+    draw.text(fill="white", **subtitle_params)
+    return title_image
 
 
-def calc_textsize(
+def _calc_fontsize(
     draw: ImageDraw,
     text: str,
     text_width_max: int,
@@ -43,5 +71,5 @@ def calc_textsize(
 
 if __name__ == "__main__":
     img = Image.open("image.png")
-    write_title(img.copy(), "Title").save("test_image.png")
+    write_title(img.copy(), "This is main title").save("test_image.png")
     img.save("origin_image.png")
