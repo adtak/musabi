@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "musabi-util"
+version = "0.1.0"
+description = ""
+authors = ["adtak <adtak62@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+loguru = "^0.7.2"
+python-dotenv = "^1.0.1"
+pydub = "^0.25.1"
+pillow = "^10.3.0"
+yt-dlp = "^2024.5.27"
+librosa = "^0.10.2.post1"
+moviepy = "^1.0.3"
+opencv-python = "^4.10.0.82"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+ruff = "^0.4.8"
+mypy = "^1.10.0"
+pytest = "^8.2.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
