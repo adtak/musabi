@@ -210,6 +210,10 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+gen-img = [
+    { name = "boto3" },
+    { name = "openai" },
+]
 gen-text = [
     { name = "boto3" },
     { name = "openai" },
@@ -223,6 +227,10 @@ dev = [
     { name = "mypy", specifier = ">=1.12.0" },
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "ruff", specifier = ">=0.6.9" },
+]
+gen-img = [
+    { name = "boto3", specifier = ">=1.37.37" },
+    { name = "openai", specifier = ">=1.75.0" },
 ]
 gen-text = [
     { name = "boto3", specifier = ">=1.37.37" },
