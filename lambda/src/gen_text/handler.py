@@ -2,6 +2,7 @@ import re
 from typing import TypedDict
 
 import boto3
+from loguru import logger
 from openai import OpenAI
 
 
@@ -73,4 +74,4 @@ def main() -> Response:
 
 
 if __name__ == "__main__":
-    print(main())
+    logger.info(main())
