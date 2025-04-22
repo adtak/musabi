@@ -1,3 +1,4 @@
+import requests
 from loguru import logger
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -6,10 +7,11 @@ def handler(event, context) -> None:  # noqa: ANN001, ARG001
     return main()
 
 
-def main(image: Image, title: str) -> Image:
+def main(image_url: str, title: str) -> Image:
+    image = Image.open(requests.get(image_url, timeout=10, stream=True).raw)
     origin_image = image.convert("RGBA")
     w, h = origin_image.size
-    font_path = "fonts/Bold.ttf"
+    font_path = "src/edit_img/fonts/Bold.ttf"
 
     logger.info(f"Title: {title}")
     logger.info(f"Image size: width {w} - height {h}")
@@ -46,7 +48,7 @@ def create_title(
     _, subtitle_top, _, _ = draw.textbbox(**subtitle_params)
 
     draw.rounded_rectangle(
-        ((10, subtitle_top - 20), (790, title_bottom + 20)),
+        ((10, subtitle_top - 20), (origin_w - 10, title_bottom + 20)),
         radius=50,
         fill=(200, 200, 200, 200),
     )
@@ -74,6 +76,7 @@ def _calc_fontsize(
 
 
 if __name__ == "__main__":
-    img = Image.open("image.png")
-    main(img.copy(), "This is main title").save("test_image.png")
-    img.save("origin_image.png")
+    main(
+        "",
+        "This is main title",
+    ).save("test_image.png")
