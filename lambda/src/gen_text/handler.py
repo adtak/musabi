@@ -17,7 +17,7 @@ def get_ssm_parameter(name: str) -> str:
     return ssm.get_parameter(Name=name, WithDecryption=False)["Parameter"]["Value"]
 
 
-def handler(event, context) -> GenTextResponse:  # noqa: ANN001, ARG001
+def handler(event: dict) -> GenTextResponse:  # noqa: ARG001
     return main()
 
 

@@ -3,8 +3,8 @@ from loguru import logger
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
-def handler(event, context) -> None:  # noqa: ANN001, ARG001
-    return main()
+def handler(event: dict) -> None:
+    return main(event.get("DishUrl", ""), event.get("DishName", ""))
 
 
 def main(image_url: str, title: str) -> Image:

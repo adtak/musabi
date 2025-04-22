@@ -15,8 +15,11 @@ def get_ssm_parameter(name: str) -> str:
     return ssm.get_parameter(Name=name, WithDecryption=False)["Parameter"]["Value"]
 
 
-def handler(event, context) -> GenImgResponse:  # noqa: ANN001, ARG001
-    return main()
+def handler(event: dict) -> GenImgResponse:
+    return main(
+        dish_name=event.get("DishName", ""),
+        recipe=event.get("Recipe", ""),
+    )
 
 
 def send_request(client: OpenAI, prompt: str) -> str:
@@ -34,19 +37,14 @@ def generate_dish_img(client: OpenAI, prompt: str) -> str:
     return send_request(client, prompt)
 
 
-def main() -> GenImgResponse:
+def main(dish_name: str, recipe: str) -> GenImgResponse:
     config = Config()
     client = OpenAI(api_key=config.api_key)
-    dish_name = ""
-    recipe = ""
     prompt = f"""
 {dish_name}という料理の画像を生成してください。レシピは次のとおりです。
 {recipe}
 """
-    img_url = generate_dish_img(
-        client,
-        prompt,
-    )
+    img_url = generate_dish_img(client, prompt)
     return {
         "DishUrl": img_url,
     }
