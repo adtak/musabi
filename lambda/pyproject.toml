@@ -10,6 +10,7 @@ dependencies = []
 edit-img = [
     "loguru>=0.7.3",
     "pillow>=11.2.1",
+    "requests>=2.32.3",
 ]
 gen-img = [
     "boto3>=1.37.37",
