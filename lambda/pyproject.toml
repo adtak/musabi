@@ -7,12 +7,18 @@ requires-python = ">=3.13"
 dependencies = []
 
 [dependency-groups]
+edit-img = [
+    "loguru>=0.7.3",
+    "pillow>=11.2.1",
+]
 gen-img = [
     "boto3>=1.37.37",
+    "loguru>=0.7.3",
     "openai>=1.75.0",
 ]
 gen-text = [
     "boto3>=1.37.37",
+    "loguru>=0.7.3",
     "openai>=1.75.0",
 ]
 
