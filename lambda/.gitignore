@@ -128,10 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# instabot config and
-config
-
-.vscode
 .DS_store
-
-model
