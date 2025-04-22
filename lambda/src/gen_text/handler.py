@@ -1,9 +1,10 @@
 import re
-from typing import TypedDict
 
 import boto3
 from loguru import logger
 from openai import OpenAI
+
+from src.shared.type import GenTextResponse
 
 
 class Config:
@@ -11,18 +12,12 @@ class Config:
         self.api_key = get_ssm_parameter("/openai/musabi/api-key")
 
 
-class Response(TypedDict):
-    DishName: str
-    EngDishName: str
-    Recipe: str
-
-
 def get_ssm_parameter(name: str) -> str:
     ssm = boto3.client("ssm")
     return ssm.get_parameter(Name=name, WithDecryption=False)["Parameter"]["Value"]
 
 
-def handler(event, context) -> Response:  # noqa: ANN001, ARG001
+def handler(event, context) -> GenTextResponse:  # noqa: ANN001, ARG001
     return main()
 
 
@@ -62,7 +57,7 @@ def generate_recipe(client: OpenAI, dish_name: str) -> str:
     )
 
 
-def main() -> Response:
+def main() -> GenTextResponse:
     config = Config()
     client = OpenAI(api_key=config.api_key)
     dish_name = generate_dish_name(client)
