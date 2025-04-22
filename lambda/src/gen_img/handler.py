@@ -51,4 +51,4 @@ def main(dish_name: str, recipe: str) -> GenImgResponse:
 
 
 if __name__ == "__main__":
-    logger.info(main())
+    logger.info(main("", ""))

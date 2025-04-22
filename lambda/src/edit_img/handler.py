@@ -8,15 +8,16 @@ def handler(event: dict) -> None:
 
 
 def main(image_url: str, title: str) -> Image:
-    image = Image.open(requests.get(image_url, timeout=10, stream=True).raw)
-    origin_image = image.convert("RGBA")
-    w, h = origin_image.size
+    image = Image.open(requests.get(image_url, timeout=10, stream=True).raw).convert(
+        "RGBA",
+    )
+    w, h = image.size
     font_path = "src/edit_img/fonts/Bold.ttf"
 
     logger.info(f"Title: {title}")
     logger.info(f"Image size: width {w} - height {h}")
 
-    blur_image = origin_image.filter(ImageFilter.GaussianBlur(4))
+    blur_image = image.filter(ImageFilter.GaussianBlur(4))
     title_image = create_title(w, h, title, font_path)
 
     return Image.alpha_composite(blur_image, title_image)
@@ -78,5 +79,5 @@ def _calc_fontsize(
 if __name__ == "__main__":
     main(
         "",
-        "This is main title",
+        "",
     ).save("test_image.png")
