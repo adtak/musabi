@@ -10,7 +10,7 @@
     "test": "jest",
     "cdk": "cdk",
     "lint": "biome ci .",
-    "fmt": "biome --write ."
+    "fmt": "biome format --write ."
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
