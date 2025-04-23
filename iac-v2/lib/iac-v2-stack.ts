@@ -45,7 +45,7 @@ export class IacV2Stack extends cdk.Stack {
           },
         ],
         imageScanOnPush: false,
-      }
+      },
     );
 
     const generateDishFunction = new cdk.aws_lambda.Function(
@@ -60,7 +60,7 @@ export class IacV2Stack extends cdk.Stack {
         environment: {
           ParameterName: "/openai/musabi/api_key",
         },
-      }
+      },
     );
 
     generateDishFunction.addToRolePolicy(
@@ -70,7 +70,7 @@ export class IacV2Stack extends cdk.Stack {
         resources: [
           `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/openai/musabi/*`,
         ],
-      })
+      }),
     );
 
     const publishImageFunction = new cdk.aws_lambda.Function(
@@ -86,7 +86,7 @@ export class IacV2Stack extends cdk.Stack {
           ImageBucket: outputBucket.bucketName,
           ParameterName: "/meta/musabi/api_key",
         },
-      }
+      },
     );
 
     publishImageFunction.addToRolePolicy(
@@ -94,7 +94,7 @@ export class IacV2Stack extends cdk.Stack {
         effect: cdk.aws_iam.Effect.ALLOW,
         actions: ["s3:GetObject"],
         resources: [outputBucket.arnForObjects("*")],
-      })
+      }),
     );
 
     publishImageFunction.addToRolePolicy(
@@ -104,7 +104,7 @@ export class IacV2Stack extends cdk.Stack {
         resources: [
           `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/meta/musabi/*`,
         ],
-      })
+      }),
     );
 
     const generateDishStep = new cdk.aws_stepfunctions_tasks.LambdaInvoke(
@@ -115,7 +115,7 @@ export class IacV2Stack extends cdk.Stack {
         integrationPattern:
           cdk.aws_stepfunctions.IntegrationPattern.REQUEST_RESPONSE,
         resultPath: "$.GenerateDishResults",
-      }
+      },
     );
 
     const processingStep = new cdk.aws_stepfunctions.CustomState(
@@ -175,7 +175,7 @@ export class IacV2Stack extends cdk.Stack {
           },
           ResultPath: "$.PreprocessingResults",
         },
-      }
+      },
     );
 
     const publishImageStep = new cdk.aws_stepfunctions_tasks.LambdaInvoke(
@@ -192,7 +192,7 @@ export class IacV2Stack extends cdk.Stack {
         }),
         integrationPattern:
           cdk.aws_stepfunctions.IntegrationPattern.REQUEST_RESPONSE,
-      }
+      },
     );
 
     const successState = new cdk.aws_stepfunctions.Succeed(this, "Succeded");
@@ -209,7 +209,7 @@ export class IacV2Stack extends cdk.Stack {
         stateMachineName: "musabi-bot-statemachine",
         definition,
         timeout: cdk.Duration.minutes(30),
-      }
+      },
     );
 
     new cdk.aws_events.Rule(this, "MusabiEventsRule", {
