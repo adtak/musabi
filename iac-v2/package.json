@@ -2,7 +2,7 @@
   "name": "musabi-iac-v2",
   "version": "0.1.0",
   "bin": {
-    "iac-v2": "bin/iac-v2.js"
+    "musabi": "bin/musabi.js"
   },
   "scripts": {
     "build": "tsc",

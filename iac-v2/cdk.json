@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/iac-v2.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/musabi.ts",
   "watch": {
     "include": ["**"],
     "exclude": [
