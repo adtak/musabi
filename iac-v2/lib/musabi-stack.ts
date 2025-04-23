@@ -1,249 +1,218 @@
 import * as cdk from "aws-cdk-lib";
 import type { Construct } from "constructs";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as events from "aws-cdk-lib/aws-events";
+import * as events_targets from "aws-cdk-lib/aws-events-targets";
+import * as ecr from "aws-cdk-lib/aws-ecr";
+import * as iam from "aws-cdk-lib/aws-iam";
+import * as sfn from "aws-cdk-lib/aws-stepfunctions";
+import * as sfn_tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 
 export class MusabiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const inputBucket = new s3.Bucket(this, "InputMusabiBucket", {
-      bucketName: "input-musabi-bot-bucket",
+    const bucket = new s3.Bucket(this, "MusabiBucket", {
+      bucketName: "musabi-bucket",
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      bucketKeyEnabled: false,
       encryption: s3.BucketEncryption.S3_MANAGED,
       objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
-      publicReadAccess: false,
-      versioned: false,
     });
-
-    const outputBucket = new s3.Bucket(this, "OutputMusabiBucket", {
-      bucketName: "output-musabi-bot-bucket",
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      bucketKeyEnabled: false,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
-      publicReadAccess: false,
-      versioned: false,
-    });
-
-    const generateImageRepository = new cdk.aws_ecr.Repository(
+    const genTextFunction = createGenTextFunction(this);
+    const genImgFunction = createGenImgFunction(this);
+    const editImgFunction = createEditImgFunction(
       this,
-      "GenerateImageRepository",
-      {
-        repositoryName: "generate-image-repository",
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-        lifecycleRules: [
-          {
-            rulePriority: 1,
-            description: "Keep only one image.",
-            maxImageCount: 1,
-            tagStatus: cdk.aws_ecr.TagStatus.ANY,
-          },
-        ],
-        imageScanOnPush: false,
-      },
+      bucket.arnForObjects("*"),
     );
-
-    const generateDishFunction = new cdk.aws_lambda.Function(
+    const pubImgFunction = createPubImgFunction(
       this,
-      "GenerateDishLambda",
-      {
-        runtime: cdk.aws_lambda.Runtime.PYTHON_3_9,
-        handler: "generate_dish.handler",
-        code: cdk.aws_lambda.Code.fromAsset("iac-v1/musabi_iac/lambda_handler"),
-        memorySize: 256,
-        timeout: cdk.Duration.minutes(3),
-        environment: {
-          ParameterName: "/openai/musabi/api_key",
-        },
-      },
+      bucket.arnForObjects("*"),
     );
-
-    generateDishFunction.addToRolePolicy(
-      new cdk.aws_iam.PolicyStatement({
-        effect: cdk.aws_iam.Effect.ALLOW,
-        actions: ["ssm:GetParameter"],
-        resources: [
-          `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/openai/musabi/*`,
-        ],
-      }),
-    );
-
-    const publishImageFunction = new cdk.aws_lambda.Function(
+    const stateMachine = createStateMachine(
       this,
-      "PublishImageLambda",
-      {
-        runtime: cdk.aws_lambda.Runtime.PYTHON_3_9,
-        handler: "publish_image.handler",
-        code: cdk.aws_lambda.Code.fromAsset("iac-v1/musabi_iac/lambda_handler"),
-        memorySize: 256,
-        timeout: cdk.Duration.minutes(3),
-        environment: {
-          ImageBucket: outputBucket.bucketName,
-          ParameterName: "/meta/musabi/api_key",
-        },
-      },
+      genTextFunction,
+      genImgFunction,
+      editImgFunction,
+      pubImgFunction,
     );
 
-    publishImageFunction.addToRolePolicy(
-      new cdk.aws_iam.PolicyStatement({
-        effect: cdk.aws_iam.Effect.ALLOW,
-        actions: ["s3:GetObject"],
-        resources: [outputBucket.arnForObjects("*")],
-      }),
-    );
-
-    publishImageFunction.addToRolePolicy(
-      new cdk.aws_iam.PolicyStatement({
-        effect: cdk.aws_iam.Effect.ALLOW,
-        actions: ["ssm:GetParameter"],
-        resources: [
-          `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/meta/musabi/*`,
-        ],
-      }),
-    );
-
-    const generateDishStep = new cdk.aws_stepfunctions_tasks.LambdaInvoke(
-      this,
-      "GenerateDish",
-      {
-        lambdaFunction: generateDishFunction,
-        integrationPattern:
-          cdk.aws_stepfunctions.IntegrationPattern.REQUEST_RESPONSE,
-        resultPath: "$.GenerateDishResults",
-      },
-    );
-
-    const processingStep = new cdk.aws_stepfunctions.CustomState(
-      this,
-      "SagemakerProcessingTask",
-      {
-        stateJson: {
-          Type: "Task",
-          Resource: "arn:aws:states:::sagemaker:createProcessingJob.sync",
-          Parameters: {
-            AppSpecification: {
-              ImageUri: generateImageRepository.repositoryUriForTag("latest"),
-            },
-            Environment: {
-              "PROMPT.$":
-                "States.Format('{}, {}', $.GenerateDishResults.Payload.EngDishName, $.Prompt)",
-              "NEGATIVE_PROMPT.$": "$.NegativePrompt",
-              "WIDTH.$": "$.Width",
-              "HEIGHT.$": "$.Height",
-              "DISH_NAME.$": "$.GenerateDishResults.Payload.DishName",
-            },
-            ProcessingJobName:
-              "States.Format('PreprocessingJob-{}', States.UUID())",
-            ProcessingResources: {
-              ClusterConfig: {
-                InstanceCount: 1,
-                InstanceType: "ml.p3.2xlarge",
-                VolumeSizeInGB: 1,
-              },
-            },
-            ProcessingInputs: [
-              {
-                InputName: "PreprocessingJobInput",
-                S3Input: {
-                  LocalPath: "/opt/ml/processing/input",
-                  S3CompressionType: "None",
-                  S3DataType: "S3Prefix",
-                  S3InputMode: "File",
-                  S3Uri: inputBucket.urlForObject(),
-                },
-              },
-            ],
-            ProcessingOutputConfig: {
-              Outputs: [
-                {
-                  OutputName: "PreprocessingJobOutput",
-                  S3Output: {
-                    LocalPath: "/opt/ml/processing/output",
-                    S3UploadMode: "EndOfJob",
-                    S3Uri: `States.Format('${outputBucket.s3UrlForObject()}/{}', $$.Execution.Name)`,
-                  },
-                },
-              ],
-            },
-            RoleArn: "arn:aws:iam::ACCOUNT_ID:role/SageMakerRole",
-            StoppingCondition: { MaxRuntimeInSeconds: 600 },
-          },
-          ResultPath: "$.PreprocessingResults",
-        },
-      },
-    );
-
-    const publishImageStep = new cdk.aws_stepfunctions_tasks.LambdaInvoke(
-      this,
-      "PublishImage",
-      {
-        lambdaFunction: publishImageFunction,
-        payload: cdk.aws_stepfunctions.TaskInput.fromObject({
-          TitleImageKey: "States.Format('{}/0_image_1.png', $$.Execution.Name)",
-          ImageKey: "States.Format('{}/0_image_2.png', $$.Execution.Name)",
-          DishName: "$.GenerateDishResults.Payload.DishName",
-          Recipe: "$.GenerateDishResults.Payload.Recipe",
-          DryRun: "$.DryRun",
-        }),
-        integrationPattern:
-          cdk.aws_stepfunctions.IntegrationPattern.REQUEST_RESPONSE,
-      },
-    );
-
-    const successState = new cdk.aws_stepfunctions.Succeed(this, "Succeded");
-
-    const definition = generateDishStep
-      .next(processingStep)
-      .next(publishImageStep)
-      .next(successState);
-
-    const stateMachine = new cdk.aws_stepfunctions.StateMachine(
-      this,
-      "MusabiStateMachine",
-      {
-        stateMachineName: "musabi-bot-statemachine",
-        definition,
-        timeout: cdk.Duration.minutes(30),
-      },
-    );
-
-    new cdk.aws_events.Rule(this, "MusabiEventsRule", {
-      schedule: cdk.aws_events.Schedule.cron({ hour: "*/12", minute: "0" }),
+    new events.Rule(this, "MusabiEventsRule", {
+      schedule: events.Schedule.cron({ hour: "*/12", minute: "0" }),
       targets: [
-        new cdk.aws_events_targets.SfnStateMachine(stateMachine, {
-          input: cdk.aws_events.RuleTargetInput.fromObject({
+        new events_targets.SfnStateMachine(stateMachine, {
+          input: events.RuleTargetInput.fromObject({
             Comment: "Insert your JSON here",
-            Prompt: [
-              "best quality",
-              "ultra high res",
-              "(photorealistic:1.4)",
-              "a very delicious-looking cuisine",
-              "a very delicious-looking dish",
-            ].join(", "),
-            NegativePrompt: [
-              "paintings",
-              "sketches",
-              "(worst quality:2)",
-              "(low quality:2)",
-              "(normal quality:2)",
-              "lowres",
-              "normal quality",
-              "((monochrome))",
-              "((grayscale))",
-            ].join(", "),
-            Width: "800",
-            Height: "800",
-            DryRun: false,
+            DryRun: true,
           }),
-          maxEventAge: cdk.Duration.minutes(15),
+          maxEventAge: cdk.Duration.minutes(10),
           retryAttempts: 0,
         }),
       ],
     });
   }
 }
+
+const createEcrRepository = (scope: Construct, name: string) => {
+  return new ecr.Repository(scope, name, {
+    repositoryName: "gen-img-repository",
+    removalPolicy: cdk.RemovalPolicy.DESTROY,
+    lifecycleRules: [
+      {
+        rulePriority: 1,
+        description: "Keep only one image.",
+        maxImageCount: 1,
+        tagStatus: ecr.TagStatus.ANY,
+      },
+    ],
+    imageScanOnPush: false,
+  });
+};
+
+const createGenTextFunction = (scope: Construct) => {
+  const genImgRepository = createEcrRepository(scope, "GenImgRepository");
+  const genImgFunction = new lambda.DockerImageFunction(scope, "GenImgLambda", {
+    code: lambda.DockerImageCode.fromEcr(genImgRepository),
+    timeout: cdk.Duration.minutes(3),
+    environment: {
+      ParameterName: "/openai/musabi/api_key",
+    },
+  });
+  genImgFunction.addToRolePolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["ssm:GetParameter"],
+      resources: [
+        `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/openai/musabi/*`,
+      ],
+    }),
+  );
+  return genImgFunction;
+};
+
+const createGenImgFunction = (scope: Construct) => {
+  const genTextRepository = createEcrRepository(scope, "GenTextRepository");
+  const genTextFunction = new lambda.DockerImageFunction(
+    scope,
+    "GenTextLambda",
+    {
+      code: lambda.DockerImageCode.fromEcr(genTextRepository),
+      timeout: cdk.Duration.minutes(3),
+      environment: {
+        ParameterName: "/openai/musabi/api_key",
+      },
+    },
+  );
+  genTextFunction.addToRolePolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["ssm:GetParameter"],
+      resources: [
+        `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/openai/musabi/*`,
+      ],
+    }),
+  );
+  return genTextFunction;
+};
+
+const createEditImgFunction = (scope: Construct, bucket_arn: string) => {
+  const editImgRepository = createEcrRepository(scope, "EditImgRepository");
+  const editImgFunction = new lambda.DockerImageFunction(
+    scope,
+    "EditImgLambda",
+    {
+      code: lambda.DockerImageCode.fromEcr(editImgRepository),
+      timeout: cdk.Duration.minutes(3),
+      environment: {
+        ParameterName: "/openai/musabi/api_key",
+      },
+    },
+  );
+  editImgFunction.addToRolePolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [bucket_arn],
+    }),
+  );
+  return editImgFunction;
+};
+
+const createPubImgFunction = (scope: Construct, bucket_arn: string) => {
+  const pubImgRepository = createEcrRepository(scope, "PubImgRepository");
+  const pubImgFunction = new lambda.DockerImageFunction(scope, "PubImgLambda", {
+    code: lambda.DockerImageCode.fromEcr(pubImgRepository),
+    timeout: cdk.Duration.minutes(3),
+    environment: {
+      ParameterName: "/openai/musabi/api_key",
+    },
+  });
+  pubImgFunction.addToRolePolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [bucket_arn],
+    }),
+  );
+  pubImgFunction.addToRolePolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["ssm:GetParameter"],
+      resources: [
+        `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/meta/musabi/*`,
+      ],
+    }),
+  );
+  return pubImgFunction;
+};
+
+const createStateMachine = (
+  scope: Construct,
+  genTextFunction: lambda.IFunction,
+  genImgFunction: lambda.IFunction,
+  editImgFunction: lambda.IFunction,
+  pubImgFunction: lambda.IFunction,
+) => {
+  const genTextStep = new sfn_tasks.LambdaInvoke(scope, "GenText", {
+    lambdaFunction: genTextFunction,
+    integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
+    resultPath: "$.GenTextResults",
+  });
+  const genImgStep = new sfn_tasks.LambdaInvoke(scope, "GenImg", {
+    lambdaFunction: genImgFunction,
+    integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
+    resultPath: "$.GenImgResults",
+  });
+  const editImgStep = new sfn_tasks.LambdaInvoke(scope, "EditImg", {
+    lambdaFunction: editImgFunction,
+    payload: sfn.TaskInput.fromObject({
+      BucketKey: "$$.Execution.Name",
+    }),
+    integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
+    resultPath: "$.EditImgResults",
+  });
+  const pubImgStep = new sfn_tasks.LambdaInvoke(scope, "PubImg", {
+    lambdaFunction: pubImgFunction,
+    payload: sfn.TaskInput.fromObject({
+      ImgPath: "$.EditImgResults.ImgPath",
+      DishName: "$.GenTextResults.Payload.DishName",
+      Recipe: "$.GenTextResults.Payload.Recipe",
+      DryRun: "$.DryRun",
+    }),
+    integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
+  });
+  const successState = new sfn.Succeed(scope, "Succeded");
+  return new sfn.StateMachine(scope, "MusabiStateMachine", {
+    stateMachineName: "musabi-statemachine",
+    definitionBody: sfn.DefinitionBody.fromChainable(
+      genTextStep
+        .next(genImgStep)
+        .next(editImgStep)
+        .next(pubImgStep)
+        .next(successState),
+    ),
+    timeout: cdk.Duration.minutes(10),
+  });
+};
