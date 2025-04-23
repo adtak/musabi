@@ -1,5 +1,5 @@
 {
-  "name": "iac-v2",
+  "name": "musabi-iac-v2",
   "version": "0.1.0",
   "bin": {
     "iac-v2": "bin/iac-v2.js"
@@ -8,7 +8,9 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "lint": "biome ci .",
+    "fmt": "biome --write ."
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
