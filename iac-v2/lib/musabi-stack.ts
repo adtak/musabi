@@ -25,18 +25,18 @@ export class MusabiStack extends cdk.Stack {
     const genImgFunction = createGenImgFunction(this);
     const editImgFunction = createEditImgFunction(
       this,
-      bucket.arnForObjects("*"),
+      bucket.arnForObjects("*")
     );
     const pubImgFunction = createPubImgFunction(
       this,
-      bucket.arnForObjects("*"),
+      bucket.arnForObjects("*")
     );
     const stateMachine = createStateMachine(
       this,
       genTextFunction,
       genImgFunction,
       editImgFunction,
-      pubImgFunction,
+      pubImgFunction
     );
 
     new events.Rule(this, "MusabiEventsRule", {
@@ -55,9 +55,9 @@ export class MusabiStack extends cdk.Stack {
   }
 }
 
-const createEcrRepository = (scope: Construct, name: string) => {
-  return new ecr.Repository(scope, name, {
-    repositoryName: "gen-img-repository",
+const createEcrRepository = (scope: Construct, id: string, name: string) => {
+  return new ecr.Repository(scope, id, {
+    repositoryName: name,
     removalPolicy: cdk.RemovalPolicy.DESTROY,
     lifecycleRules: [
       {
@@ -72,7 +72,40 @@ const createEcrRepository = (scope: Construct, name: string) => {
 };
 
 const createGenTextFunction = (scope: Construct) => {
-  const genImgRepository = createEcrRepository(scope, "GenImgRepository");
+  const genTextRepository = createEcrRepository(
+    scope,
+    "GenTextRepository",
+    "musabi-gen-text"
+  );
+  const genTextFunction = new lambda.DockerImageFunction(
+    scope,
+    "GenTextLambda",
+    {
+      code: lambda.DockerImageCode.fromEcr(genTextRepository),
+      timeout: cdk.Duration.minutes(3),
+      environment: {
+        ParameterName: "/openai/musabi/api_key",
+      },
+    }
+  );
+  genTextFunction.addToRolePolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["ssm:GetParameter"],
+      resources: [
+        `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/openai/musabi/*`,
+      ],
+    })
+  );
+  return genTextFunction;
+};
+
+const createGenImgFunction = (scope: Construct) => {
+  const genImgRepository = createEcrRepository(
+    scope,
+    "GenImgRepository",
+    "musabi-gen-img"
+  );
   const genImgFunction = new lambda.DockerImageFunction(scope, "GenImgLambda", {
     code: lambda.DockerImageCode.fromEcr(genImgRepository),
     timeout: cdk.Duration.minutes(3),
@@ -87,74 +120,51 @@ const createGenTextFunction = (scope: Construct) => {
       resources: [
         `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/openai/musabi/*`,
       ],
-    }),
+    })
   );
   return genImgFunction;
 };
 
-const createGenImgFunction = (scope: Construct) => {
-  const genTextRepository = createEcrRepository(scope, "GenTextRepository");
-  const genTextFunction = new lambda.DockerImageFunction(
-    scope,
-    "GenTextLambda",
-    {
-      code: lambda.DockerImageCode.fromEcr(genTextRepository),
-      timeout: cdk.Duration.minutes(3),
-      environment: {
-        ParameterName: "/openai/musabi/api_key",
-      },
-    },
-  );
-  genTextFunction.addToRolePolicy(
-    new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["ssm:GetParameter"],
-      resources: [
-        `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/openai/musabi/*`,
-      ],
-    }),
-  );
-  return genTextFunction;
-};
-
 const createEditImgFunction = (scope: Construct, bucket_arn: string) => {
-  const editImgRepository = createEcrRepository(scope, "EditImgRepository");
+  const editImgRepository = createEcrRepository(
+    scope,
+    "EditImgRepository",
+    "musabi-edit-img"
+  );
   const editImgFunction = new lambda.DockerImageFunction(
     scope,
     "EditImgLambda",
     {
       code: lambda.DockerImageCode.fromEcr(editImgRepository),
       timeout: cdk.Duration.minutes(3),
-      environment: {
-        ParameterName: "/openai/musabi/api_key",
-      },
-    },
+    }
   );
   editImgFunction.addToRolePolicy(
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ["s3:GetObject"],
+      actions: ["s3:PutObject"],
       resources: [bucket_arn],
-    }),
+    })
   );
   return editImgFunction;
 };
 
 const createPubImgFunction = (scope: Construct, bucket_arn: string) => {
-  const pubImgRepository = createEcrRepository(scope, "PubImgRepository");
+  const pubImgRepository = createEcrRepository(
+    scope,
+    "PubImgRepository",
+    "musabi-pub-img"
+  );
   const pubImgFunction = new lambda.DockerImageFunction(scope, "PubImgLambda", {
     code: lambda.DockerImageCode.fromEcr(pubImgRepository),
     timeout: cdk.Duration.minutes(3),
-    environment: {
-      ParameterName: "/openai/musabi/api_key",
-    },
   });
   pubImgFunction.addToRolePolicy(
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["s3:GetObject"],
       resources: [bucket_arn],
-    }),
+    })
   );
   pubImgFunction.addToRolePolicy(
     new iam.PolicyStatement({
@@ -163,7 +173,7 @@ const createPubImgFunction = (scope: Construct, bucket_arn: string) => {
       resources: [
         `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/meta/musabi/*`,
       ],
-    }),
+    })
   );
   return pubImgFunction;
 };
@@ -173,7 +183,7 @@ const createStateMachine = (
   genTextFunction: lambda.IFunction,
   genImgFunction: lambda.IFunction,
   editImgFunction: lambda.IFunction,
-  pubImgFunction: lambda.IFunction,
+  pubImgFunction: lambda.IFunction
 ) => {
   const genTextStep = new sfn_tasks.LambdaInvoke(scope, "GenText", {
     lambdaFunction: genTextFunction,
@@ -183,12 +193,17 @@ const createStateMachine = (
   const genImgStep = new sfn_tasks.LambdaInvoke(scope, "GenImg", {
     lambdaFunction: genImgFunction,
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
+    payload: sfn.TaskInput.fromObject({
+      DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
+      Recipe: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Recipe"),
+    }),
     resultPath: "$.GenImgResults",
   });
   const editImgStep = new sfn_tasks.LambdaInvoke(scope, "EditImg", {
     lambdaFunction: editImgFunction,
     payload: sfn.TaskInput.fromObject({
-      BucketKey: "$$.Execution.Name",
+      ImgUrl: sfn.JsonPath.stringAt("$.GenImgResults.Payload.ImgUrl"),
+      DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
     }),
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
     resultPath: "$.EditImgResults",
@@ -196,9 +211,9 @@ const createStateMachine = (
   const pubImgStep = new sfn_tasks.LambdaInvoke(scope, "PubImg", {
     lambdaFunction: pubImgFunction,
     payload: sfn.TaskInput.fromObject({
-      ImgPath: "$.EditImgResults.ImgPath",
-      DishName: "$.GenTextResults.Payload.DishName",
-      Recipe: "$.GenTextResults.Payload.Recipe",
+      DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
+      Recipe: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Recipe"),
+      ImgPath: sfn.JsonPath.stringAt("$.GenImgResults.Payload.ImgPath"),
       DryRun: "$.DryRun",
     }),
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
@@ -211,7 +226,7 @@ const createStateMachine = (
         .next(genImgStep)
         .next(editImgStep)
         .next(pubImgStep)
-        .next(successState),
+        .next(successState)
     ),
     timeout: cdk.Duration.minutes(10),
   });
