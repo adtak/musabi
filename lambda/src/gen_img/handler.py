@@ -46,7 +46,7 @@ def main(dish_name: str, recipe: str) -> GenImgResponse:
 """
     img_url = generate_dish_img(client, prompt)
     return {
-        "DishUrl": img_url,
+        "ImgUrl": img_url,
     }
 
 
