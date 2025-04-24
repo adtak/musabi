@@ -1,4 +1,4 @@
-def handler() -> None:
+def handler(event: dict, context: object) -> None:  # noqa: ARG001
     main()
 
 

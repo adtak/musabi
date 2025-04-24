@@ -15,7 +15,7 @@ def get_ssm_parameter(name: str) -> str:
     return ssm.get_parameter(Name=name, WithDecryption=False)["Parameter"]["Value"]
 
 
-def handler(event: dict) -> GenImgResponse:
+def handler(event: dict, context: object) -> GenImgResponse:  # noqa: ARG001
     return main(
         dish_name=event.get("DishName", ""),
         recipe=event.get("Recipe", ""),
