@@ -7,4 +7,4 @@ class GenTextResponse(TypedDict):
 
 
 class GenImgResponse(TypedDict):
-    DishUrl: str
+    ImgUrl: str

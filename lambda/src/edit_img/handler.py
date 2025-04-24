@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
 def handler(event: dict) -> None:
-    return main(event.get("DishUrl", ""), event.get("DishName", ""))
+    return main(event.get("ImgUrl", ""), event.get("DishName", ""))
 
 
 def main(image_url: str, title: str) -> Image:
