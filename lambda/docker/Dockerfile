@@ -15,7 +15,7 @@ RUN --mount=from=uv,source=/uv,target=/bin/uv \
     uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
 # GenTextLambda
-FROM public.ecr.aws/lambda/python:3.13 AS gen_text
+FROM public.ecr.aws/lambda/python:3.13 AS gen-text
 
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
 COPY ../src/gen_text ${LAMBDA_TASK_ROOT}/src/gen_text/
@@ -24,7 +24,7 @@ COPY ../src/shared ${LAMBDA_TASK_ROOT}/src/shared/
 CMD [ "src.gen_text.handler.handler" ]
 
 # GenImgLambda
-FROM public.ecr.aws/lambda/python:3.13 AS gen_img
+FROM public.ecr.aws/lambda/python:3.13 AS gen-img
 
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
 COPY ../src/gen_img ${LAMBDA_TASK_ROOT}/src/gen_img/
@@ -33,7 +33,7 @@ COPY ../src/shared ${LAMBDA_TASK_ROOT}/src/shared/
 CMD [ "src.gen_img.handler.handler" ]
 
 # EditImgLambda
-FROM public.ecr.aws/lambda/python:3.13 AS edit_img
+FROM public.ecr.aws/lambda/python:3.13 AS edit-img
 
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
 COPY ../src/edit_img ${LAMBDA_TASK_ROOT}/src/edit_img/
@@ -42,7 +42,7 @@ COPY ../src/shared ${LAMBDA_TASK_ROOT}/src/shared/
 CMD [ "src.edit_img.handler.handler" ]
 
 # PubImgLambda
-FROM public.ecr.aws/lambda/python:3.13 AS pub_img
+FROM public.ecr.aws/lambda/python:3.13 AS pub-img
 
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
 COPY ../src/pub_img ${LAMBDA_TASK_ROOT}/src/pub_img/
