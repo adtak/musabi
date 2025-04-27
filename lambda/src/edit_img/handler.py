@@ -1,13 +1,21 @@
+import io
+
+import boto3
 import requests
 from loguru import logger
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
 def handler(event: dict, context: object) -> None:  # noqa: ARG001
-    return main(event.get("ImgUrl", ""), event.get("DishName", ""))
+    return main(
+        event.get("ImgUrl", ""),
+        event.get("DishName", ""),
+        event.get("BucketName", ""),
+        event.get("ExecName", ""),
+    )
 
 
-def main(image_url: str, title: str) -> Image:
+def main(image_url: str, title: str, bucket_name: str, exec_name: str) -> Image:
     image = Image.open(requests.get(image_url, timeout=10, stream=True).raw).convert(
         "RGBA",
     )
@@ -20,7 +28,23 @@ def main(image_url: str, title: str) -> Image:
     blur_image = image.filter(ImageFilter.GaussianBlur(4))
     title_image = create_title(w, h, title, font_path)
 
-    return Image.alpha_composite(blur_image, title_image)
+    result_image = Image.alpha_composite(blur_image, title_image)
+
+    image_buffer = io.BytesIO()
+    result_image.save(image_buffer, format="PNG")
+    image_buffer.seek(0)
+
+    s3_client = boto3.client("s3")
+    s3_object_key = f"{exec_name}.png"
+    s3_client.put_object(
+        Bucket=bucket_name,
+        Key=s3_object_key,
+        Body=image_buffer,
+        ContentType="image/png",
+    )
+    return {
+        "EditImgUrl": f"s3://{bucket_name}/{s3_object_key}",
+    }
 
 
 def create_title(
