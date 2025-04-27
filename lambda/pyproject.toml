@@ -22,6 +22,9 @@ gen-text = [
     "loguru>=0.7.3",
     "openai>=1.75.0",
 ]
+pub-img = [
+    "loguru>=0.7.3",
+]
 
 [tool.uv]
 dev-dependencies = [

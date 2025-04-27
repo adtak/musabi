@@ -247,6 +247,9 @@ gen-text = [
     { name = "loguru" },
     { name = "openai" },
 ]
+pub-img = [
+    { name = "loguru" },
+]
 
 [package.metadata]
 
@@ -272,6 +275,7 @@ gen-text = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "openai", specifier = ">=1.75.0" },
 ]
+pub-img = [{ name = "loguru", specifier = ">=0.7.3" }]
 
 [[package]]
 name = "loguru"
