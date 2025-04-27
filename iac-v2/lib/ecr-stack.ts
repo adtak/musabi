@@ -14,22 +14,22 @@ export class EcrStack extends cdk.Stack {
     this.genTextRepository = createEcrRepository(
       this,
       "GenTextRepository",
-      "musabi-gen-text"
+      "musabi-gen-text",
     );
     this.genImgRepository = createEcrRepository(
       this,
       "GenImgRepository",
-      "musabi-gen-img"
+      "musabi-gen-img",
     );
     this.editImgRepository = createEcrRepository(
       this,
       "EditImgRepository",
-      "musabi-edit-img"
+      "musabi-edit-img",
     );
     this.pubImgRepository = createEcrRepository(
       this,
       "PubImgRepository",
-      "musabi-pub-img"
+      "musabi-pub-img",
     );
   }
 }

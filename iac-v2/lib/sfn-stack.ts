@@ -49,6 +49,7 @@ export class SfnStack extends cdk.Stack {
       genImgFunction,
       editImgFunction,
       pubImgFunction,
+      bucket.bucketName,
     );
 
     new events.Rule(this, "MusabiEventsRule", {
@@ -168,6 +169,7 @@ const createStateMachine = (
   genImgFunction: lambda.IFunction,
   editImgFunction: lambda.IFunction,
   pubImgFunction: lambda.IFunction,
+  bucketName: string,
 ) => {
   const genTextStep = new sfn_tasks.LambdaInvoke(scope, "GenText", {
     lambdaFunction: genTextFunction,
@@ -188,6 +190,8 @@ const createStateMachine = (
     payload: sfn.TaskInput.fromObject({
       ImgUrl: sfn.JsonPath.stringAt("$.GenImgResults.Payload.ImgUrl"),
       DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
+      BucketName: bucketName,
+      ExecName: sfn.JsonPath.stringAt("$$.Execution.Name"),
     }),
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
     resultPath: "$.EditImgResults",
