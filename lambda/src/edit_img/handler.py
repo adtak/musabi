@@ -30,20 +30,11 @@ def main(image_url: str, title: str, bucket_name: str, exec_name: str) -> Image:
 
     result_image = Image.alpha_composite(blur_image, title_image)
 
-    image_buffer = io.BytesIO()
-    result_image.save(image_buffer, format="PNG")
-    image_buffer.seek(0)
-
-    s3_client = boto3.client("s3")
-    s3_object_key = f"{exec_name}.png"
-    s3_client.put_object(
-        Bucket=bucket_name,
-        Key=s3_object_key,
-        Body=image_buffer,
-        ContentType="image/png",
-    )
+    edit_image_uri = put_image(result_image, bucket_name, f"{exec_name}/0.png")
+    origin_image_uri = put_image(image, bucket_name, f"{exec_name}/1.png")
     return {
-        "EditImgUrl": f"s3://{bucket_name}/{s3_object_key}",
+        "EditImgUrl": edit_image_uri,
+        "OriginImgUrl": origin_image_uri,
     }
 
 
@@ -98,6 +89,20 @@ def _calc_fontsize(
             break
     logger.info(f"Calculated font size {font_size}")
     return font_size
+
+def put_image(image: Image, bucket_name: str, s3_object_key: str) -> str:
+    image_buffer = io.BytesIO()
+    image.save(image_buffer, format="PNG")
+    image_buffer.seek(0)
+
+    s3_client = boto3.client("s3")
+    s3_client.put_object(
+        Bucket=bucket_name,
+        Key=s3_object_key,
+        Body=image_buffer,
+        ContentType="image/png",
+    )
+    return f"s3://{bucket_name}/{s3_object_key}"
 
 
 if __name__ == "__main__":
