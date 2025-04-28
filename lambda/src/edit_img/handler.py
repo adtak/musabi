@@ -33,8 +33,8 @@ def main(image_url: str, title: str, bucket_name: str, exec_name: str) -> Image:
     edit_image_uri = put_image(result_image, bucket_name, f"{exec_name}/0.png")
     origin_image_uri = put_image(image, bucket_name, f"{exec_name}/1.png")
     return {
-        "EditImgUrl": edit_image_uri,
-        "OriginImgUrl": origin_image_uri,
+        "EditImgUri": edit_image_uri,
+        "OriginImgUri": origin_image_uri,
     }
 
 
