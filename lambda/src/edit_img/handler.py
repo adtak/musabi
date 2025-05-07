@@ -1,4 +1,5 @@
 import io
+import os
 
 import boto3
 import requests
@@ -10,7 +11,7 @@ def handler(event: dict, context: object) -> None:  # noqa: ARG001
     return main(
         event.get("ImgUrl", ""),
         event.get("DishName", ""),
-        event.get("BucketName", ""),
+        os.getenv("BUCKET_NAME"),
         event.get("ExecName", ""),
     )
 
@@ -89,6 +90,7 @@ def _calc_fontsize(
             break
     logger.info(f"Calculated font size {font_size}")
     return font_size
+
 
 def put_image(image: Image, bucket_name: str, s3_object_key: str) -> str:
     image_buffer = io.BytesIO()
