@@ -36,12 +36,12 @@ export class SfnStack extends cdk.Stack {
     const editImgFunction = createEditImgFunction(
       this,
       props.editImgRepository,
-      bucket.arnForObjects("*")
+      bucket
     );
     const pubImgFunction = createPubImgFunction(
       this,
       props.pubImgRepository,
-      bucket.arnForObjects("*")
+      bucket
     );
     const stateMachine = createStateMachine(
       this,
@@ -115,7 +115,7 @@ const createGenImgFunction = (scope: Construct, ecrRepo: ecr.Repository) => {
 const createEditImgFunction = (
   scope: Construct,
   ecrRepo: ecr.Repository,
-  bucket_arn: string
+  bucket: s3.Bucket
 ) => {
   const editImgFunction = new lambda.DockerImageFunction(
     scope,
@@ -123,13 +123,16 @@ const createEditImgFunction = (
     {
       code: lambda.DockerImageCode.fromEcr(ecrRepo),
       timeout: cdk.Duration.minutes(3),
+      environment: {
+        IMAGE_BUCKET: bucket.bucketName,
+      },
     }
   );
   editImgFunction.addToRolePolicy(
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["s3:PutObject"],
-      resources: [bucket_arn],
+      resources: [bucket.arnForObjects("*")],
     })
   );
   return editImgFunction;
@@ -138,17 +141,20 @@ const createEditImgFunction = (
 const createPubImgFunction = (
   scope: Construct,
   ecrRepo: ecr.Repository,
-  bucket_arn: string
+  bucket: s3.Bucket
 ) => {
   const pubImgFunction = new lambda.DockerImageFunction(scope, "PubImgLambda", {
     code: lambda.DockerImageCode.fromEcr(ecrRepo),
     timeout: cdk.Duration.minutes(3),
+    environment: {
+      IMAGE_BUCKET: bucket.bucketName,
+    },
   });
   pubImgFunction.addToRolePolicy(
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["s3:GetObject"],
-      resources: [bucket_arn],
+      resources: [bucket.arnForObjects("*")],
     })
   );
   pubImgFunction.addToRolePolicy(
