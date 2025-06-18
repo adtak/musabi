@@ -1,20 +1,10 @@
 import re
 
-import boto3
 from loguru import logger
 from openai import OpenAI
 
+from src.shared.config import OpenAIConfig
 from src.shared.type import GenTextResponse
-
-
-class Config:
-    def __init__(self) -> None:
-        self.api_key = get_ssm_parameter("/openai/musabi/api-key")
-
-
-def get_ssm_parameter(name: str) -> str:
-    ssm = boto3.client("ssm")
-    return ssm.get_parameter(Name=name, WithDecryption=False)["Parameter"]["Value"]
 
 
 def handler(event: dict, context: object) -> GenTextResponse:  # noqa: ARG001
@@ -58,7 +48,7 @@ def generate_recipe(client: OpenAI, dish_name: str) -> str:
 
 
 def main() -> GenTextResponse:
-    config = Config()
+    config = OpenAIConfig()
     client = OpenAI(api_key=config.api_key)
     dish_name = generate_dish_name(client)
     recipe = generate_recipe(client, dish_name)

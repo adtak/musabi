@@ -1,7 +1,8 @@
 import os
 
 from src.pub_img import mod
-from src.pub_img.client import Client, Config
+from src.pub_img.client import Client
+from src.shared.config import MetaConfig
 
 
 def handler(event: dict, context: object) -> None:  # noqa: ARG001
@@ -23,7 +24,7 @@ def main(
     dish_name: str,
     recipe: str,
 ) -> None:
-    client = Client(Config())
+    client = Client(MetaConfig())
     title_image_url = mod.create_presigned_url(
         image_bucket,
         title_image_key,

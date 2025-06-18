@@ -1,18 +1,8 @@
-import boto3
 from loguru import logger
 from openai import OpenAI
 
+from src.shared.config import OpenAIConfig
 from src.shared.type import GenImgResponse
-
-
-class Config:
-    def __init__(self) -> None:
-        self.api_key = get_ssm_parameter("/openai/musabi/api-key")
-
-
-def get_ssm_parameter(name: str) -> str:
-    ssm = boto3.client("ssm")
-    return ssm.get_parameter(Name=name, WithDecryption=False)["Parameter"]["Value"]
 
 
 def handler(event: dict, context: object) -> GenImgResponse:  # noqa: ARG001
@@ -38,7 +28,7 @@ def generate_dish_img(client: OpenAI, prompt: str) -> str:
 
 
 def main(dish_name: str, recipe: str) -> GenImgResponse:
-    config = Config()
+    config = OpenAIConfig()
     client = OpenAI(api_key=config.api_key)
     prompt = f"""
 {dish_name}という料理の画像を生成してください。レシピは次のとおりです。
