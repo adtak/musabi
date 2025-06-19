@@ -1,14 +1,10 @@
 import json
 from typing import Any
 
-import boto3
 import requests
 from loguru import logger
 
-
-def get_ssm_parameter(name: str) -> str:
-    ssm = boto3.client("ssm")
-    return ssm.get_parameter(Name=name, WithDecryption=False)["Parameter"]["Value"]
+from src.shared.config import MetaConfig
 
 
 def create_fields(fields: list[str]) -> str:
@@ -27,20 +23,8 @@ def call_api(url: str, method: str, request: dict[str, Any]) -> dict[str, Any]:
     return json.loads(response.content)
 
 
-class Config:
-    def __init__(self) -> None:
-        self.access_token = get_ssm_parameter("/meta/musabi/access-token")
-        self.account_id = get_ssm_parameter("/meta/musabi/account-id")
-        self.version = get_ssm_parameter("/meta/musabi/version")
-        self.graph_url = get_ssm_parameter("/meta/musabi/graph-url")
-
-    @property
-    def endpoint_base(self) -> str:
-        return f"{self.graph_url}/{self.version}/"
-
-
 class Client:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: MetaConfig) -> None:
         self.config = config
 
     def get_user_media(self) -> dict[str, Any]:
