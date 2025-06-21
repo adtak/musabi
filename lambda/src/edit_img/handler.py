@@ -33,11 +33,11 @@ def main(image_url: str, title: str, bucket_name: str, exec_name: str) -> Image:
     title_image = create_title(w, h, title, font_path)
     result_image = Image.alpha_composite(blur_image, title_image)
 
-    edit_image_uri = put_image(result_image, bucket_name, f"{exec_name}/0.png")
-    origin_image_uri = put_image(image, bucket_name, f"{exec_name}/1.png")
+    title_image_uri = put_image(result_image, bucket_name, f"{exec_name}/0.png")
+    image_uri = put_image(image, bucket_name, f"{exec_name}/1.png")
     return {
-        "EditImgUri": edit_image_uri,
-        "OriginImgUri": origin_image_uri,
+        "TitleImgUri": title_image_uri,
+        "ImgUri": image_uri,
     }
 
 
