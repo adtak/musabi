@@ -53,12 +53,11 @@ export class SfnStack extends cdk.Stack {
     );
 
     new events.Rule(this, "MusabiEventsRule", {
-      schedule: events.Schedule.cron({ hour: "*/12", minute: "0" }),
+      schedule: events.Schedule.cron({ hour: "3", minute: "0" }),
       targets: [
         new events_targets.SfnStateMachine(stateMachine, {
           input: events.RuleTargetInput.fromObject({
-            Comment: "Insert your JSON here",
-            DryRun: true,
+            DryRun: false,
           }),
           maxEventAge: cdk.Duration.minutes(10),
           retryAttempts: 0,
