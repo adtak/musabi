@@ -1,12 +1,16 @@
 import os
 
+from loguru import logger
+
 from src.pub_img import mod
 from src.pub_img.client import Client
 from src.shared.config import MetaConfig
 
 
 def handler(event: dict, context: object) -> None:  # noqa: ARG001
-    if event.get("DryRun"):
+    dry_run = event.get("DryRun")
+    if dry_run:
+        logger.info(f"DryRun: {dry_run}. Finish no pub image.")
         return {}
     return main(
         os.getenv("IMAGE_BUCKET"),
