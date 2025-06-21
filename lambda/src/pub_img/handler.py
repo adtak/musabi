@@ -14,8 +14,8 @@ def handler(event: dict, context: object) -> None:  # noqa: ARG001
         return {}
     return main(
         os.getenv("IMAGE_BUCKET"),
-        event.get("TitleImageKey"),
-        event.get("ImageKey"),
+        event.get("TitleImgKey"),
+        event.get("ImgKey"),
         event.get("DishName"),
         event.get("Recipe"),
     )
