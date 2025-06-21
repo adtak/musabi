@@ -33,11 +33,11 @@ def main(image_url: str, title: str, bucket_name: str, exec_name: str) -> Image:
     title_image = create_title(w, h, title, font_path)
     result_image = Image.alpha_composite(blur_image, title_image)
 
-    title_image_uri = put_image(result_image, bucket_name, f"{exec_name}/0.png")
-    image_uri = put_image(image, bucket_name, f"{exec_name}/1.png")
+    title_image_key = put_image(result_image, bucket_name, f"{exec_name}/0.png")
+    image_key = put_image(image, bucket_name, f"{exec_name}/1.png")
     return {
-        "TitleImgUri": title_image_uri,
-        "ImgUri": image_uri,
+        "TitleImgKey": title_image_key,
+        "ImgKey": image_key,
     }
 
 
@@ -106,7 +106,7 @@ def put_image(image: Image, bucket_name: str, s3_object_key: str) -> str:
         Body=image_buffer,
         ContentType="image/png",
     )
-    return f"s3://{bucket_name}/{s3_object_key}"
+    return s3_object_key
 
 
 if __name__ == "__main__":
