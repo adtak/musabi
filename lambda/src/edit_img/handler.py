@@ -17,18 +17,20 @@ def handler(event: dict, context: object) -> None:  # noqa: ARG001
 
 
 def main(image_url: str, title: str, bucket_name: str, exec_name: str) -> Image:
+    logger.info(f"image_url: {image_url}")
+    logger.info(f"title: {title}")
+    logger.info(f"bucket_name: {bucket_name}")
+    logger.info(f"exec_name: {exec_name}")
+
     image = Image.open(requests.get(image_url, timeout=10, stream=True).raw).convert(
         "RGBA",
     )
     w, h = image.size
-    font_path = "src/edit_img/fonts/Bold.ttf"
-
-    logger.info(f"Title: {title}")
     logger.info(f"Image size: width {w} - height {h}")
 
     blur_image = image.filter(ImageFilter.GaussianBlur(4))
+    font_path = "src/edit_img/fonts/Bold.ttf"
     title_image = create_title(w, h, title, font_path)
-
     result_image = Image.alpha_composite(blur_image, title_image)
 
     edit_image_uri = put_image(result_image, bucket_name, f"{exec_name}/0.png")
@@ -108,7 +110,6 @@ def put_image(image: Image, bucket_name: str, s3_object_key: str) -> str:
 
 
 if __name__ == "__main__":
-    main(
-        "",
-        "",
-    ).save("test_image.png")
+    logger.info(
+        main("", "", "", ""),
+    )
