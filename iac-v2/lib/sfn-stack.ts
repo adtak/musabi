@@ -211,7 +211,7 @@ const createStateMachine = (
         "$.EditImgResults.Payload.TitleImgKey"
       ),
       ImgKey: sfn.JsonPath.stringAt("$.EditImgResults.Payload.ImgKey"),
-      DryRun: "$.DryRun",
+      DryRun: sfn.JsonPath.stringAt("$.DryRun"),
     }),
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
   });
