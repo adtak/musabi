@@ -207,10 +207,10 @@ const createStateMachine = (
     payload: sfn.TaskInput.fromObject({
       DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
       Recipe: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Recipe"),
-      TitleImgUri: sfn.JsonPath.stringAt(
-        "$.EditImgResults.Payload.TitleImgUri"
+      TitleImgKey: sfn.JsonPath.stringAt(
+        "$.EditImgResults.Payload.TitleImgKey"
       ),
-      ImgUri: sfn.JsonPath.stringAt("$.EditImgResults.Payload.ImgUri"),
+      ImgKey: sfn.JsonPath.stringAt("$.EditImgResults.Payload.ImgKey"),
       DryRun: "$.DryRun",
     }),
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
