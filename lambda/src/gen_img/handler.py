@@ -31,7 +31,7 @@ def main(dish_name: str, recipe: str) -> GenImgResponse:
     config = OpenAIConfig()
     client = OpenAI(api_key=config.api_key)
     prompt = f"""
-{dish_name}という料理の画像を生成してください。レシピは次のとおりです。
+{dish_name}という料理の写真を生成してください。レシピは次のとおりです。
 {recipe}
 """
     img_url = generate_dish_img(client, prompt)
