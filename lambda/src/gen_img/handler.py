@@ -30,10 +30,11 @@ def generate_dish_img(client: OpenAI, prompt: str) -> str:
 def main(dish_name: str, recipe: str) -> GenImgResponse:
     config = OpenAIConfig()
     client = OpenAI(api_key=config.api_key)
-    prompt = f"""
-{dish_name}という料理の写真を生成してください。レシピは次のとおりです。
-{recipe}
-"""
+    prompt = (
+        f"{dish_name}という料理の写真をインスタグラムに投稿される写真風に生成してください。レシピは次のとおりです。"
+        f"{recipe}"
+        "ただし、写真に文字は絶対に写さないでください。"
+    )
     img_url = generate_dish_img(client, prompt)
     return {
         "ImgUrl": img_url,
