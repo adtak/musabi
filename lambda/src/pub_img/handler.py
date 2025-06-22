@@ -8,26 +8,28 @@ from src.shared.config import MetaConfig
 
 
 def handler(event: dict, context: object) -> None:  # noqa: ARG001
-    dry_run = event.get("DryRun")
-    if dry_run:
-        logger.info(f"DryRun: {dry_run}. Finish no pub image.")
-        return {}
     return main(
         os.getenv("IMAGE_BUCKET"),
         event.get("TitleImgKey"),
         event.get("ImgKey"),
         event.get("DishName"),
         event.get("Recipe"),
+        dry_run=event.get("DryRun"),
     )
 
 
-def main(
+def main(  # noqa: PLR0913
     image_bucket: str,
     title_image_key: str,
     image_key: str,
     dish_name: str,
     recipe: str,
+    *,
+    dry_run: bool,
 ) -> None:
+    if dry_run:
+        logger.info(f"DryRun: {dry_run}. Finish no pub image.")
+        return {}
     client = Client(MetaConfig())
     title_image_url = mod.create_presigned_url(
         image_bucket,
