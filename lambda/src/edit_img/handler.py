@@ -6,6 +6,8 @@ import requests
 from loguru import logger
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+from src.shared.logging import log_exec
+
 
 def handler(event: dict, context: object) -> None:  # noqa: ARG001
     return main(
@@ -16,12 +18,8 @@ def handler(event: dict, context: object) -> None:  # noqa: ARG001
     )
 
 
+@log_exec
 def main(image_url: str, title: str, bucket_name: str, exec_name: str) -> Image:
-    logger.info(f"image_url: {image_url}")
-    logger.info(f"title: {title}")
-    logger.info(f"bucket_name: {bucket_name}")
-    logger.info(f"exec_name: {exec_name}")
-
     image = Image.open(requests.get(image_url, timeout=10, stream=True).raw).convert(
         "RGBA",
     )
@@ -110,6 +108,4 @@ def put_image(image: Image, bucket_name: str, s3_object_key: str) -> str:
 
 
 if __name__ == "__main__":
-    logger.info(
-        main("", "", "", ""),
-    )
+    main("", "", "", "")

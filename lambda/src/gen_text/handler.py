@@ -2,10 +2,10 @@ import os
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from loguru import logger
 from pydantic import BaseModel, Field
 
 from src.shared.config import OpenAIConfig
+from src.shared.logging import log_exec
 from src.shared.type import GenTextResponse
 
 
@@ -49,6 +49,7 @@ def handler(event: dict, context: object) -> GenTextResponse:  # noqa: ARG001
     return main()
 
 
+@log_exec
 def main() -> GenTextResponse:
     config = OpenAIConfig()
     os.environ["OPENAI_API_KEY"] = config.api_key
@@ -60,4 +61,4 @@ def main() -> GenTextResponse:
 
 
 if __name__ == "__main__":
-    logger.info(main())
+    main()

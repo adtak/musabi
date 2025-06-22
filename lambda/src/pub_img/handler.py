@@ -5,6 +5,7 @@ from loguru import logger
 from src.pub_img import mod
 from src.pub_img.client import Client
 from src.shared.config import MetaConfig
+from src.shared.logging import log_exec
 
 
 def handler(event: dict, context: object) -> None:  # noqa: ARG001
@@ -18,6 +19,7 @@ def handler(event: dict, context: object) -> None:  # noqa: ARG001
     )
 
 
+@log_exec
 def main(  # noqa: PLR0913
     image_bucket: str,
     title_image_key: str,

@@ -1,7 +1,7 @@
-from loguru import logger
 from openai import OpenAI
 
 from src.shared.config import OpenAIConfig
+from src.shared.logging import log_exec
 from src.shared.type import GenImgResponse
 
 
@@ -27,6 +27,7 @@ def generate_dish_img(client: OpenAI, prompt: str) -> str:
     return send_request(client, prompt)
 
 
+@log_exec
 def main(dish_name: str, recipe: str) -> GenImgResponse:
     config = OpenAIConfig()
     client = OpenAI(api_key=config.api_key)
@@ -42,4 +43,4 @@ def main(dish_name: str, recipe: str) -> GenImgResponse:
 
 
 if __name__ == "__main__":
-    logger.info(main("", ""))
+    main("", "")
