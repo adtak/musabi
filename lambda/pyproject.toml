@@ -14,17 +14,13 @@ edit-img = [
 ]
 gen-img = [
     "boto3>=1.37.37",
-    "langchain-core>=0.3.66",
-    "langchain-openai>=0.3.23",
     "loguru>=0.7.3",
     "openai>=1.75.0",
 ]
 gen-text = [
-    "boto3>=1.37.37",
     "langchain-core>=0.3.66",
     "langchain-openai>=0.3.23",
     "loguru>=0.7.3",
-    "openai>=1.75.0",
 ]
 pub-img = [
     "loguru>=0.7.3",

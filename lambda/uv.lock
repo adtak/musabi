@@ -282,17 +282,13 @@ edit-img = [
 ]
 gen-img = [
     { name = "boto3" },
-    { name = "langchain-core" },
-    { name = "langchain-openai" },
     { name = "loguru" },
     { name = "openai" },
 ]
 gen-text = [
-    { name = "boto3" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
     { name = "loguru" },
-    { name = "openai" },
 ]
 pub-img = [
     { name = "loguru" },
@@ -315,17 +311,13 @@ edit-img = [
 ]
 gen-img = [
     { name = "boto3", specifier = ">=1.37.37" },
-    { name = "langchain-core", specifier = ">=0.3.66" },
-    { name = "langchain-openai", specifier = ">=0.3.23" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "openai", specifier = ">=1.75.0" },
 ]
 gen-text = [
-    { name = "boto3", specifier = ">=1.37.37" },
     { name = "langchain-core", specifier = ">=0.3.66" },
     { name = "langchain-openai", specifier = ">=0.3.23" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "openai", specifier = ">=1.75.0" },
 ]
 pub-img = [
     { name = "loguru", specifier = ">=0.7.3" },
