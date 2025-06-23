@@ -16,7 +16,6 @@ def upload_images(client: Client, image_urls: list[str], caption: str) -> None:
             caption=caption,
             is_carousel_item=True,
         )
-        logger.info(response)
         conainer_id = response["id"]
         wait_container_finish(client, conainer_id)
         container_ids.append(conainer_id)
@@ -25,12 +24,10 @@ def upload_images(client: Client, image_urls: list[str], caption: str) -> None:
         media_type="CAROUSEL",
         children=container_ids,
     )
-    logger.info(response)
     conainer_id = response["id"]
     wait_container_finish(client, conainer_id)
     media_id = client.publish_media(creation_id=conainer_id)["id"]
     response = client.get_media(media_id=media_id)
-    logger.info(response)
 
 
 def upload_image(client: Client, image_url: str, caption: str) -> None:
@@ -39,12 +36,10 @@ def upload_image(client: Client, image_url: str, caption: str) -> None:
         caption=caption,
         is_carousel_item=False,
     )
-    logger.info(response)
     conainer_id = response["id"]
     wait_container_finish(client, conainer_id)
     media_id = client.publish_media(creation_id=conainer_id)["id"]
     response = client.get_media(media_id=media_id)
-    logger.info(response)
 
 
 def wait_container_finish(client: Client, container_id: str) -> None:

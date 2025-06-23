@@ -12,15 +12,17 @@ def create_fields(fields: list[str]) -> str:
 
 
 def call_api(url: str, method: str, request: dict[str, Any]) -> dict[str, Any]:
-    logger.info(f"Request URL: ({method}) {url}")
+    logger.info(f"Request: ({method}) {url}")
     if method == "GET":
-        response = requests.get(url, request, timeout=10)
+        response = requests.get(url, request, timeout=30)
     elif method == "POST":
-        response = requests.post(url, json=request, timeout=10)
+        response = requests.post(url, json=request, timeout=30)
     else:
         msg = "Method not supported."
         raise ValueError(msg)
-    return json.loads(response.content)
+    results = json.loads(response.content)
+    logger.info(f"Response: {results}")
+    return results
 
 
 class Client:

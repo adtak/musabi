@@ -1,62 +1,64 @@
-import re
+import os
 
-from loguru import logger
-from openai import OpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 
 from src.shared.config import OpenAIConfig
+from src.shared.logging import log_exec
 from src.shared.type import GenTextResponse
+
+
+class Dish(BaseModel):
+    dish_name: str = Field(description="料理の名前")
+    ingredients: list[str] = Field(description="料理を作るのに使用する材料と分量")
+    steps: list[str] = Field(description="料理を作るための手順")
+
+    def to_recipe(self) -> str:
+        ingredients = [f"- {ing}" for ing in self.ingredients]
+        steps = [f"{i}. {step}" for i, step in enumerate(self.steps, 1)]
+        return f"""{self.dish_name}のレシピは以下の通りです。
+
+【材料】
+{'\n'.join(ingredients)}
+
+【作り方】
+{'\n'.join(steps)}
+
+ぜひ試してみてください！
+"""  # noqa: RUF001
+
+
+def generate_dish() -> Dish:
+    message = """
+あなたは一流のシェフであり、世界中のあらゆる料理について熟知しています。
+一般的な家庭でも作りやすい料理を一つ提案してください。
+ただし、レシピには多少のアレンジを加えてください。
+"""
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("human", message),
+        ],
+    )
+    model = ChatOpenAI(model="gpt-4.1-nano", temperature=0.9)
+    chain = prompt | model.with_structured_output(Dish)
+    return chain.invoke({})
 
 
 def handler(event: dict, context: object) -> GenTextResponse:  # noqa: ARG001
     return main()
 
 
-def send_request(client: OpenAI, system_content: str, user_content: str) -> str:
-    results = client.chat.completions.create(
-        model="gpt-4.1-nano",
-        messages=[
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": user_content},
-        ],
-    )
-    return results.choices[0].message.content
-
-
-def generate_dish_name(client: OpenAI) -> str:
-    user_content = """
-あなたは一流のシェフであり、世界中のあらゆる料理について熟知しています。
-また、探究心が強く、独創的で画期的な料理のレシピを常日頃から創作しています。
-独創的でおしゃれな料理の名前を一つ提案してください。
-また、料理の名前には食材の名前を入れてください。
-ただし、生き物の名前を入れないでください。
-返答は料理の名前のみを「」で囲って返答してください。
-"""
-    content = send_request(client, "日本語で返答してください。", user_content)
-    return re.findall(r"「(.*)」", content)[0]
-
-
-def generate_recipe(client: OpenAI, dish_name: str) -> str:
-    user_content = f"""
-「{dish_name}」という料理のレシピを教えてください。
-返答は「{dish_name}のレシピは以下の通りです。」から始めてください。
-"""
-    return send_request(
-        client,
-        "日本語で返答してください。情報が存在しない場合でも、架空の情報で提案してください。",
-        user_content,
-    )
-
-
+@log_exec
 def main() -> GenTextResponse:
     config = OpenAIConfig()
-    client = OpenAI(api_key=config.api_key)
-    dish_name = generate_dish_name(client)
-    recipe = generate_recipe(client, dish_name)
+    os.environ["OPENAI_API_KEY"] = config.api_key
+    recipe = generate_dish()
     return {
-        "DishName": dish_name,
-        "Recipe": recipe,
+        "DishName": recipe.dish_name,
+        "Recipe": recipe.to_recipe(),
     }
 
 
 if __name__ == "__main__":
-    logger.info(main())
+    main()

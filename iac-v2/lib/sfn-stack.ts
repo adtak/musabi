@@ -53,12 +53,11 @@ export class SfnStack extends cdk.Stack {
     );
 
     new events.Rule(this, "MusabiEventsRule", {
-      schedule: events.Schedule.cron({ hour: "*/12", minute: "0" }),
+      schedule: events.Schedule.cron({ hour: "3", minute: "0" }),
       targets: [
         new events_targets.SfnStateMachine(stateMachine, {
           input: events.RuleTargetInput.fromObject({
-            Comment: "Insert your JSON here",
-            DryRun: true,
+            DryRun: false,
           }),
           maxEventAge: cdk.Duration.minutes(10),
           retryAttempts: 0,
@@ -207,13 +206,11 @@ const createStateMachine = (
     payload: sfn.TaskInput.fromObject({
       DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
       Recipe: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Recipe"),
-      EditImageUri: sfn.JsonPath.stringAt(
-        "$.EditImgResults.Payload.EditImageUri"
+      TitleImgKey: sfn.JsonPath.stringAt(
+        "$.EditImgResults.Payload.TitleImgKey"
       ),
-      OriginImageUri: sfn.JsonPath.stringAt(
-        "$.EditImgResults.Payload.OriginImageUri"
-      ),
-      DryRun: "$.DryRun",
+      ImgKey: sfn.JsonPath.stringAt("$.EditImgResults.Payload.ImgKey"),
+      DryRun: sfn.JsonPath.stringAt("$.DryRun"),
     }),
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
   });

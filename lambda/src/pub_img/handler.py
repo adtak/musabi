@@ -1,29 +1,37 @@
 import os
 
+from loguru import logger
+
 from src.pub_img import mod
 from src.pub_img.client import Client
 from src.shared.config import MetaConfig
+from src.shared.logging import log_exec
 
 
 def handler(event: dict, context: object) -> None:  # noqa: ARG001
-    if event.get("DryRun"):
-        return {}
     return main(
         os.getenv("IMAGE_BUCKET"),
-        event.get("TitleImageKey"),
-        event.get("ImageKey"),
+        event.get("TitleImgKey"),
+        event.get("ImgKey"),
         event.get("DishName"),
         event.get("Recipe"),
+        dry_run=event.get("DryRun"),
     )
 
 
-def main(
+@log_exec
+def main(  # noqa: PLR0913
     image_bucket: str,
     title_image_key: str,
     image_key: str,
     dish_name: str,
     recipe: str,
+    *,
+    dry_run: bool,
 ) -> None:
+    if dry_run:
+        logger.info(f"DryRun: {dry_run}. Finish no pub image.")
+        return {}
     client = Client(MetaConfig())
     title_image_url = mod.create_presigned_url(
         image_bucket,

@@ -6,36 +6,36 @@ import requests
 from loguru import logger
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+from src.shared.logging import log_exec
+
 
 def handler(event: dict, context: object) -> None:  # noqa: ARG001
     return main(
         event.get("ImgUrl", ""),
         event.get("DishName", ""),
-        os.getenv("BUCKET_NAME"),
+        os.getenv("IMAGE_BUCKET"),
         event.get("ExecName", ""),
     )
 
 
+@log_exec
 def main(image_url: str, title: str, bucket_name: str, exec_name: str) -> Image:
     image = Image.open(requests.get(image_url, timeout=10, stream=True).raw).convert(
         "RGBA",
     )
     w, h = image.size
-    font_path = "src/edit_img/fonts/Bold.ttf"
-
-    logger.info(f"Title: {title}")
     logger.info(f"Image size: width {w} - height {h}")
 
     blur_image = image.filter(ImageFilter.GaussianBlur(4))
+    font_path = "src/edit_img/fonts/Bold.ttf"
     title_image = create_title(w, h, title, font_path)
-
     result_image = Image.alpha_composite(blur_image, title_image)
 
-    edit_image_uri = put_image(result_image, bucket_name, f"{exec_name}/0.png")
-    origin_image_uri = put_image(image, bucket_name, f"{exec_name}/1.png")
+    title_image_key = put_image(result_image, bucket_name, f"{exec_name}/0.png")
+    image_key = put_image(image, bucket_name, f"{exec_name}/1.png")
     return {
-        "EditImgUri": edit_image_uri,
-        "OriginImgUri": origin_image_uri,
+        "TitleImgKey": title_image_key,
+        "ImgKey": image_key,
     }
 
 
@@ -104,11 +104,8 @@ def put_image(image: Image, bucket_name: str, s3_object_key: str) -> str:
         Body=image_buffer,
         ContentType="image/png",
     )
-    return f"s3://{bucket_name}/{s3_object_key}"
+    return s3_object_key
 
 
 if __name__ == "__main__":
-    main(
-        "",
-        "",
-    ).save("test_image.png")
+    main("", "", "", "")
