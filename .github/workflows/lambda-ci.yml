@@ -1,0 +1,41 @@
+name: Lambda CI
+
+on:
+  pull_request:
+    paths:
+      - 'lambda/**'
+  push:
+    branches: [ main ]
+    paths:
+      - 'lambda/**'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Set up Python
+      run: uv python install 3.13
+    
+    - name: Install dependencies
+      run: |
+        cd lambda
+        uv sync
+    
+    - name: Format check
+      run: |
+        cd lambda
+        uv run black --check src/*
+        uv run ruff check src/* --no-cache
+    
+    - name: Type check
+      run: |
+        cd lambda
+        uv run mypy .
