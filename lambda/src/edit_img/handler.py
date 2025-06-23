@@ -1,5 +1,6 @@
 import io
 import os
+from typing import Any
 
 import boto3
 import requests
@@ -9,17 +10,27 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from src.shared.logging import log_exec
 
 
-def handler(event: dict, context: object) -> None:  # noqa: ARG001
+def handler(event: dict[str, Any], context: object) -> dict[str, str]:  # noqa: ARG001
+    bucket_name = os.getenv("IMAGE_BUCKET")
+    if bucket_name is None:
+        msg = "IMAGE_BUCKET environment variable is not set"
+        raise ValueError(msg)
+    image_url = event.get("ImgUrl")
+    title = event.get("DishName")
+    exec_name = event.get("ExecName")
+
     return main(
-        event.get("ImgUrl", ""),
-        event.get("DishName", ""),
-        os.getenv("IMAGE_BUCKET"),
-        event.get("ExecName", ""),
+        image_url,
+        title,
+        bucket_name,
+        exec_name,
     )
 
 
 @log_exec
-def main(image_url: str, title: str, bucket_name: str, exec_name: str) -> Image:
+def main(
+    image_url: str, title: str, bucket_name: str, exec_name: str,
+) -> dict[str, str]:
     image = Image.open(requests.get(image_url, timeout=10, stream=True).raw).convert(
         "RGBA",
     )
@@ -44,11 +55,11 @@ def create_title(
     origin_h: int,
     title: str,
     font_path: str,
-) -> Image:
+) -> Image.Image:
     title_image = Image.new("RGBA", (origin_w, origin_h), (255, 255, 255, 0))
     draw = ImageDraw.Draw(title_image)
 
-    fontsize = _calc_fontsize(draw, title, origin_w * 0.8, font_path)
+    fontsize = _calc_fontsize(draw, title, int(origin_w * 0.8), font_path)
     title_params = {
         "xy": (origin_w // 2, origin_h // 2),
         "text": title,
@@ -75,7 +86,7 @@ def create_title(
 
 
 def _calc_fontsize(
-    draw: ImageDraw,
+    draw: ImageDraw.ImageDraw,
     text: str,
     text_width_max: int,
     font_path: str,
@@ -92,7 +103,7 @@ def _calc_fontsize(
     return font_size
 
 
-def put_image(image: Image, bucket_name: str, s3_object_key: str) -> str:
+def put_image(image: Image.Image, bucket_name: str, s3_object_key: str) -> str:
     image_buffer = io.BytesIO()
     image.save(image_buffer, format="PNG")
     image_buffer.seek(0)

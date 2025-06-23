@@ -20,7 +20,7 @@ def call_api(url: str, method: str, request: dict[str, Any]) -> dict[str, Any]:
     else:
         msg = "Method not supported."
         raise ValueError(msg)
-    results = json.loads(response.content)
+    results: dict[str, Any] = json.loads(response.content)
     logger.info(f"Response: {results}")
     return results
 

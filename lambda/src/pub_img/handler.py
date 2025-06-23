@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from loguru import logger
 
@@ -8,14 +9,28 @@ from src.shared.config import MetaConfig
 from src.shared.logging import log_exec
 
 
-def handler(event: dict, context: object) -> None:  # noqa: ARG001
+def handler(event: dict[str, Any], context: object) -> dict[str, Any]:  # noqa: ARG001
+    image_bucket = os.getenv("IMAGE_BUCKET")
+    if image_bucket is None:
+        msg = "IMAGE_BUCKET environment variable is not set"
+        raise ValueError(msg)
+
+    title_image_key = event.get("TitleImgKey")
+    image_key = event.get("ImgKey")
+    dish_name = event.get("DishName")
+    recipe = event.get("Recipe")
+    dry_run = event.get("DryRun", False)
+    if not all([title_image_key, image_key, dish_name, recipe]):
+        msg = "Required event fields are missing"
+        raise ValueError(msg)
+
     return main(
-        os.getenv("IMAGE_BUCKET"),
-        event.get("TitleImgKey"),
-        event.get("ImgKey"),
-        event.get("DishName"),
-        event.get("Recipe"),
-        dry_run=event.get("DryRun"),
+        image_bucket,
+        title_image_key,
+        image_key,
+        dish_name,
+        recipe,
+        dry_run=dry_run,
     )
 
 
@@ -28,7 +43,7 @@ def main(  # noqa: PLR0913
     recipe: str,
     *,
     dry_run: bool,
-) -> None:
+) -> dict[str, Any]:
     if dry_run:
         logger.info(f"DryRun: {dry_run}. Finish no pub image.")
         return {}
@@ -49,4 +64,4 @@ def main(  # noqa: PLR0913
 
 
 if __name__ == "__main__":
-    main("", "", "", "", "")
+    main("", "", "", "", "", dry_run=True)

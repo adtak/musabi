@@ -61,7 +61,7 @@ def create_presigned_url(
         config=botocore.client.Config(signature_version="s3v4"),
     )
     try:
-        url = s3_client.generate_presigned_url(
+        url: str = s3_client.generate_presigned_url(
             "get_object",
             Params={"Bucket": bucket_name, "Key": object_name},
             ExpiresIn=expiration,

@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
@@ -42,10 +43,11 @@ def generate_dish() -> Dish:
     )
     model = ChatOpenAI(model="gpt-4.1-nano", temperature=0.9)
     chain = prompt | model.with_structured_output(Dish)
-    return chain.invoke({})
+    result: Dish = chain.invoke({})
+    return result
 
 
-def handler(event: dict, context: object) -> GenTextResponse:  # noqa: ARG001
+def handler(event: dict[str, Any], context: object) -> GenTextResponse:  # noqa: ARG001
     return main()
 
 

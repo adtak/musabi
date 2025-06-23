@@ -1,3 +1,5 @@
+from typing import Any
+
 from openai import OpenAI
 
 from src.shared.config import OpenAIConfig
@@ -5,10 +7,16 @@ from src.shared.logging import log_exec
 from src.shared.type import GenImgResponse
 
 
-def handler(event: dict, context: object) -> GenImgResponse:  # noqa: ARG001
+def handler(event: dict[str, Any], context: object) -> GenImgResponse:  # noqa: ARG001
+    dish_name=event.get("DishName")
+    recipe=event.get("Recipe")
+    if not all([dish_name, recipe]):
+        msg = "Required event fields are missing"
+        raise ValueError(msg)
+
     return main(
-        dish_name=event.get("DishName", ""),
-        recipe=event.get("Recipe", ""),
+        dish_name,
+        recipe,
     )
 
 
@@ -20,7 +28,11 @@ def send_request(client: OpenAI, prompt: str) -> str:
         quality="standard",
         n=1,
     )
-    return results.data[0].url
+    url = results.data[0].url
+    if url is None:
+        msg = "Generated image URL is None"
+        raise ValueError(msg)
+    return url
 
 
 def generate_dish_img(client: OpenAI, prompt: str) -> str:

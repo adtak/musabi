@@ -1,14 +1,17 @@
+from typing import Any
+
 import boto3
 
 
 def get_ssm_parameter(name: str) -> str:
     ssm = boto3.client("ssm")
-    return ssm.get_parameter(Name=name, WithDecryption=True)["Parameter"]["Value"]
+    parameter: dict[str, Any] = ssm.get_parameter(Name=name, WithDecryption=True)
+    return parameter["Parameter"]["Value"]
 
 
 class OpenAIConfig:
     def __init__(self) -> None:
-        self._api_key = None
+        self._api_key: str | None = None
 
     @property
     def api_key(self) -> str:
@@ -19,10 +22,10 @@ class OpenAIConfig:
 
 class MetaConfig:
     def __init__(self) -> None:
-        self._access_token = None
-        self._account_id = None
-        self._version = None
-        self._graph_url = None
+        self._access_token: str | None = None
+        self._account_id: str | None = None
+        self._version: str | None = None
+        self._graph_url: str | None = None
 
     @property
     def access_token(self) -> str:

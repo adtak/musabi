@@ -1,7 +1,7 @@
 import json
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from loguru import logger
 
@@ -30,4 +30,4 @@ def log_exec(func: F) -> F:
         else:
             return result
 
-    return wrapper
+    return cast("F", wrapper)
