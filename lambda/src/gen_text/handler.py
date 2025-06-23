@@ -43,8 +43,7 @@ def generate_dish() -> Dish:
     )
     model = ChatOpenAI(model="gpt-4.1-nano", temperature=0.9)
     chain = prompt | model.with_structured_output(Dish)
-    result: Dish = chain.invoke({})
-    return result
+    return chain.invoke({})  # type: ignore[return-value]
 
 
 def handler(event: dict[str, Any], context: object) -> GenTextResponse:  # noqa: ARG001
