@@ -1,6 +1,6 @@
 import io
 import os
-from typing import Any
+from typing import Any, TypedDict, cast
 
 import boto3
 import requests
@@ -10,14 +10,21 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from src.shared.logging import log_exec
 
 
+class TitleParams(TypedDict):
+    xy: tuple[float, float]
+    text: str
+    font: ImageFont.FreeTypeFont
+    anchor: str
+
+
 def handler(event: dict[str, Any], context: object) -> dict[str, str]:  # noqa: ARG001
     bucket_name = os.getenv("IMAGE_BUCKET")
     if bucket_name is None:
         msg = "IMAGE_BUCKET environment variable is not set"
         raise ValueError(msg)
-    image_url = event.get("ImgUrl")
-    title = event.get("DishName")
-    exec_name = event.get("ExecName")
+    image_url = cast("str", event.get("ImgUrl"))
+    title = cast("str", event.get("DishName"))
+    exec_name = cast("str", event.get("ExecName"))
 
     return main(
         image_url,
@@ -63,14 +70,14 @@ def create_title(
     draw = ImageDraw.Draw(title_image)
 
     fontsize = _calc_fontsize(draw, title, int(origin_w * 0.8), font_path)
-    title_params = {
+    title_params: TitleParams = {
         "xy": (origin_w // 2, origin_h // 2),
         "text": title,
         "font": ImageFont.truetype(font_path, fontsize),
         "anchor": "mm",
     }
     _, title_top, _, title_bottom = draw.textbbox(**title_params)
-    subtitle_params = {
+    subtitle_params: TitleParams = {
         "xy": (origin_w // 2, title_top),
         "text": "AIが考えたレシピ",
         "font": ImageFont.truetype(font_path, min(50, fontsize)),

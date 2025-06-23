@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, cast
 
 from loguru import logger
 
@@ -15,11 +15,11 @@ def handler(event: dict[str, Any], context: object) -> dict[str, Any]:  # noqa: 
         msg = "IMAGE_BUCKET environment variable is not set"
         raise ValueError(msg)
 
-    title_image_key = event.get("TitleImgKey")
-    image_key = event.get("ImgKey")
-    dish_name = event.get("DishName")
-    recipe = event.get("Recipe")
-    dry_run = event.get("DryRun", False)
+    title_image_key = cast("str", event.get("TitleImgKey"))
+    image_key = cast("str", event.get("ImgKey"))
+    dish_name = cast("str", event.get("DishName"))
+    recipe = cast("str", event.get("Recipe"))
+    dry_run = cast("bool", event.get("DryRun", False))
     if not all([title_image_key, image_key, dish_name, recipe]):
         msg = "Required event fields are missing"
         raise ValueError(msg)

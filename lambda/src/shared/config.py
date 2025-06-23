@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import boto3
 
@@ -6,7 +6,7 @@ import boto3
 def get_ssm_parameter(name: str) -> str:
     ssm = boto3.client("ssm")
     parameter: dict[str, Any] = ssm.get_parameter(Name=name, WithDecryption=True)
-    return parameter["Parameter"]["Value"]
+    return cast("str", parameter["Parameter"]["Value"])
 
 
 class OpenAIConfig:
