@@ -33,15 +33,21 @@ class Dish(BaseModel):
 def generate_dish() -> Dish:
     message = """
 あなたは一流のシェフであり、世界中のあらゆる料理について熟知しています。
-一般的な家庭でも作りやすい料理を一つ提案してください。
-ただし、レシピには多少のアレンジを加えてください。
+また、探究心が強く、独創的で画期的な料理のレシピを常日頃から創作しています。
+独創的でおしゃれだけど、比較的簡単に作れる料理を一つ提案してください。
 """
     prompt = ChatPromptTemplate.from_messages(
         [
             ("human", message),
         ],
     )
-    model = ChatOpenAI(model="gpt-4.1-nano", temperature=0.9)
+    model = ChatOpenAI(
+        model="gpt-4.1",
+        temperature=0.8,
+        top_p=0.8,
+        frequency_penalty=0.5,
+        presence_penalty=0.8,
+    )
     chain = prompt | model.with_structured_output(Dish)
     return chain.invoke({})  # type: ignore[return-value]
 
