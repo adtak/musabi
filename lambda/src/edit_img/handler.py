@@ -41,9 +41,8 @@ def main(
     bucket_name: str,
     exec_name: str,
 ) -> dict[str, str]:
-    image = Image.open(requests.get(image_url, timeout=10, stream=True).raw).convert(
-        "RGBA",
-    )
+    response = requests.get(image_url, timeout=10, stream=True)
+    image = Image.open(io.BytesIO(response.raw.read())).convert("RGBA")
     w, h = image.size
     logger.info(f"Image size: width {w} - height {h}")
 
