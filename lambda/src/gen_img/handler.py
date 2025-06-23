@@ -8,8 +8,8 @@ from src.shared.type import GenImgResponse
 
 
 def handler(event: dict[str, Any], context: object) -> GenImgResponse:  # noqa: ARG001
-    dish_name=event.get("DishName")
-    recipe=event.get("Recipe")
+    dish_name = event.get("DishName")
+    recipe = event.get("Recipe")
     if not all([dish_name, recipe]):
         msg = "Required event fields are missing"
         raise ValueError(msg)

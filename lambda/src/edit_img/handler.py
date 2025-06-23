@@ -29,7 +29,10 @@ def handler(event: dict[str, Any], context: object) -> dict[str, str]:  # noqa: 
 
 @log_exec
 def main(
-    image_url: str, title: str, bucket_name: str, exec_name: str,
+    image_url: str,
+    title: str,
+    bucket_name: str,
+    exec_name: str,
 ) -> dict[str, str]:
     image = Image.open(requests.get(image_url, timeout=10, stream=True).raw).convert(
         "RGBA",
