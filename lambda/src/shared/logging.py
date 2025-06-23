@@ -1,16 +1,13 @@
 import json
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar, cast
 
 from loguru import logger
 
-F = TypeVar("F", bound=Callable[..., Any])
 
-
-def log_exec(func: F) -> F:
+def log_exec[T, **P](func: Callable[P, T]) -> Callable[P, T]:
     @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:  # noqa: ANN401
+    def inner(*args: P.args, **kwargs: P.kwargs) -> T:
         logger.info(f"{func.__name__} function called")
         logger.info(
             f"Args: {json.dumps(args, ensure_ascii=False, default=str)}",
@@ -30,4 +27,4 @@ def log_exec(func: F) -> F:
         else:
             return result
 
-    return cast("F", wrapper)
+    return inner
