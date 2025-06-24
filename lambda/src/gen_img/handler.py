@@ -7,19 +7,6 @@ from src.shared.logging import log_exec
 from src.shared.type import GenImgResponse
 
 
-def handler(event: dict[str, Any], context: object) -> GenImgResponse:  # noqa: ARG001
-    dish_name = cast("str", event.get("DishName"))
-    recipe = cast("str", event.get("Recipe"))
-    if not all([dish_name, recipe]):
-        msg = "Required event fields are missing"
-        raise ValueError(msg)
-
-    return main(
-        dish_name,
-        recipe,
-    )
-
-
 def send_request(client: OpenAI, prompt: str) -> str:
     results = client.images.generate(
         model="dall-e-3",
@@ -37,6 +24,19 @@ def send_request(client: OpenAI, prompt: str) -> str:
 
 def generate_dish_img(client: OpenAI, prompt: str) -> str:
     return send_request(client, prompt)
+
+
+def handler(event: dict[str, Any], context: object) -> GenImgResponse:  # noqa: ARG001
+    dish_name = cast("str", event.get("DishName"))
+    recipe = cast("str", event.get("Recipe"))
+    if not all([dish_name, recipe]):
+        msg = "Required event fields are missing"
+        raise ValueError(msg)
+
+    return main(
+        dish_name,
+        recipe,
+    )
 
 
 @log_exec
