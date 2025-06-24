@@ -15,19 +15,13 @@ class Dish(BaseModel):
     ingredients: list[str] = Field(description="料理を作るのに使用する材料と分量")
     steps: list[str] = Field(description="料理を作るための手順")
 
-    def to_recipe(self) -> str:
+    def ingredients_str(self) -> str:
         ingredients = [f"- {ing}" for ing in self.ingredients]
+        return f"【材料】\n{'\n'.join(ingredients)}"
+
+    def steps_str(self) -> str:
         steps = [f"{i}. {step}" for i, step in enumerate(self.steps, 1)]
-        return f"""{self.dish_name}のレシピは以下の通りです。
-
-【材料】
-{'\n'.join(ingredients)}
-
-【作り方】
-{'\n'.join(steps)}
-
-ぜひ試してみてください！
-"""  # noqa: RUF001
+        return f"【作り方】\n{'\n'.join(steps)}"
 
 
 def generate_dish() -> Dish:
@@ -63,7 +57,8 @@ def main() -> GenTextResponse:
     recipe = generate_dish()
     return {
         "DishName": recipe.dish_name,
-        "Recipe": recipe.to_recipe(),
+        "Ingredients": recipe.ingredients_str(),
+        "Steps": recipe.steps_str(),
     }
 
 

@@ -3,7 +3,8 @@ from typing import TypedDict
 
 class GenTextResponse(TypedDict):
     DishName: str
-    Recipe: str
+    Ingredients: str
+    Steps: str
 
 
 class GenImgResponse(TypedDict):

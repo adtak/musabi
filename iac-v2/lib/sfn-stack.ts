@@ -186,7 +186,9 @@ const createStateMachine = (
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
     payload: sfn.TaskInput.fromObject({
       DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
-      Recipe: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Recipe"),
+      Ingredients: sfn.JsonPath.stringAt(
+        "$.GenTextResults.Payload.Ingredients"
+      ),
     }),
     resultPath: "$.GenImgResults",
   });
@@ -205,7 +207,10 @@ const createStateMachine = (
     lambdaFunction: pubImgFunction,
     payload: sfn.TaskInput.fromObject({
       DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
-      Recipe: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Recipe"),
+      Ingredients: sfn.JsonPath.stringAt(
+        "$.GenTextResults.Payload.Ingredients"
+      ),
+      Steps: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Steps"),
       TitleImgKey: sfn.JsonPath.stringAt(
         "$.EditImgResults.Payload.TitleImgKey"
       ),

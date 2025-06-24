@@ -28,24 +28,21 @@ def generate_dish_img(client: OpenAI, prompt: str) -> str:
 
 def handler(event: dict[str, Any], context: object) -> GenImgResponse:  # noqa: ARG001
     dish_name = cast("str", event.get("DishName"))
-    recipe = cast("str", event.get("Recipe"))
-    if not all([dish_name, recipe]):
+    ingredients = cast("str", event.get("Ingredients"))
+    if not all([dish_name, ingredients]):
         msg = "Required event fields are missing"
         raise ValueError(msg)
 
-    return main(
-        dish_name,
-        recipe,
-    )
+    return main(dish_name, ingredients)
 
 
 @log_exec
-def main(dish_name: str, recipe: str) -> GenImgResponse:
+def main(dish_name: str, ingredients: str) -> GenImgResponse:
     config = OpenAIConfig()
     client = OpenAI(api_key=config.api_key)
     prompt = (
-        f"{dish_name}という料理の写真をインスタグラムに投稿される写真風に生成してください。レシピは次のとおりです。"
-        f"{recipe}"
+        f"{dish_name}という料理の写真をインスタグラムに投稿される写真風に生成してください。材料は次のとおりです。"
+        f"{ingredients}"
         "ただし、写真に文字は絶対に写さないでください。"
     )
     img_url = generate_dish_img(client, prompt)

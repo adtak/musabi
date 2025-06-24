@@ -18,9 +18,10 @@ def handler(event: dict[str, Any], context: object) -> dict[str, Any]:  # noqa: 
     title_image_key = cast("str", event.get("TitleImgKey"))
     image_key = cast("str", event.get("ImgKey"))
     dish_name = cast("str", event.get("DishName"))
-    recipe = cast("str", event.get("Recipe"))
+    ingredients = cast("str", event.get("Ingredients"))
+    steps = cast("str", event.get("Steps"))
     dry_run = cast("bool", event.get("DryRun", False))
-    if not all([title_image_key, image_key, dish_name, recipe]):
+    if not all([title_image_key, image_key, dish_name, ingredients, steps]):
         msg = "Required event fields are missing"
         raise ValueError(msg)
 
@@ -29,7 +30,8 @@ def handler(event: dict[str, Any], context: object) -> dict[str, Any]:  # noqa: 
         title_image_key,
         image_key,
         dish_name,
-        recipe,
+        ingredients,
+        steps,
         dry_run=dry_run,
     )
 
@@ -40,7 +42,8 @@ def main(  # noqa: PLR0913
     title_image_key: str,
     image_key: str,
     dish_name: str,
-    recipe: str,
+    ingredients: str,
+    steps: str,
     *,
     dry_run: bool,
 ) -> dict[str, Any]:
@@ -54,6 +57,7 @@ def main(  # noqa: PLR0913
     )
     image_url = mod.create_presigned_url(image_bucket, image_key)
     comments = "※このレシピと写真はAIによって自動で作成されたものです。\nレシピの内容について確認はしていないため、食べられる料理が作成できない恐れがあります。"  # noqa: E501
+    recipe = f"{dish_name}のレシピは以下の通りです。\n\n{ingredients}\n\n{steps}\n\nぜひ試してみてください！"  # noqa: E501, RUF001
     hashtag = "#レシピ #料理 #お菓子 #クッキング #AI #AIレシピ"
     mod.upload_images(
         client,
@@ -64,4 +68,4 @@ def main(  # noqa: PLR0913
 
 
 if __name__ == "__main__":
-    main("", "", "", "", "", dry_run=True)
+    main("", "", "", "", "", "", dry_run=True)
