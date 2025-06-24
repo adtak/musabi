@@ -201,6 +201,7 @@ const createStateMachine = (
       Ingredients: sfn.JsonPath.stringAt(
         "$.GenTextResults.Payload.Ingredients",
       ),
+      ExecName: sfn.JsonPath.stringAt("$$.Execution.Name"),
     }),
     resultPath: "$.GenImgResults",
   });
