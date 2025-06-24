@@ -1,4 +1,5 @@
 import time
+from typing import cast
 
 import boto3
 import botocore
@@ -38,7 +39,7 @@ def _create_and_wait_for_image(
         caption=caption,
         is_carousel_item=is_carousel_item,
     )
-    container_id = response["id"]
+    container_id = cast("str", response["id"])
     _wait_container_finish(client, container_id)
     return container_id
 
@@ -53,7 +54,7 @@ def _create_and_wait_for_carousel(
         media_type="CAROUSEL",
         children=children,
     )
-    container_id = response["id"]
+    container_id = cast("str", response["id"])
     _wait_container_finish(client, container_id)
     return container_id
 
