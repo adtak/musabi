@@ -76,6 +76,9 @@ def handler(event: dict[str, Any], context: object) -> dict[str, str]:  # noqa: 
     title = cast("str", event.get("DishName"))
     image_key = cast("str", event.get("ImgKey"))
     exec_name = cast("str", event.get("ExecName"))
+    if not all([title, image_key, exec_name]):
+        msg = "Required event fields are missing"
+        raise ValueError(msg)
 
     return main(
         title,
