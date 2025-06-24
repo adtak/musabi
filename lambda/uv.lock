@@ -327,6 +327,7 @@ gen-img = [
     { name = "boto3" },
     { name = "google-genai" },
     { name = "loguru" },
+    { name = "pillow" },
 ]
 gen-text = [
     { name = "langchain-core" },
@@ -358,6 +359,7 @@ gen-img = [
     { name = "boto3", specifier = ">=1.37.37" },
     { name = "google-genai", specifier = ">=1.21.1" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pillow", specifier = ">=11.2.1" },
 ]
 gen-text = [
     { name = "langchain-core", specifier = ">=0.3.66" },
