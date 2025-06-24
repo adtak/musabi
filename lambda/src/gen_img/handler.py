@@ -1,55 +1,79 @@
+import os
+from io import BytesIO
 from typing import Any, cast
 
-from openai import OpenAI
+from google import genai
+from google.genai import types
+from loguru import logger
+from PIL import Image
 
-from src.shared.config import OpenAIConfig
+from src.shared.config import GeminiConfig
 from src.shared.logging import log_exec
+from src.shared.s3 import put_image
 from src.shared.type import GenImgResponse
 
 
-def send_request(client: OpenAI, prompt: str) -> str:
-    results = client.images.generate(
-        model="dall-e-3",
-        prompt=prompt,
-        size="1024x1024",
-        quality="standard",
-        n=1,
+def generate_dish_img(client: genai.Client, contents: str) -> Image.Image:
+    response = client.models.generate_content(
+        model="gemini-2.0-flash-preview-image-generation",
+        contents=contents,
+        config=types.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"]),
     )
-    url = results.data[0].url
-    if url is None:
-        msg = "Generated image URL is None"
-        raise ValueError(msg)
-    return url
+    if (
+        response.candidates is None
+        or response.candidates[0].content is None
+        or response.candidates[0].content.parts is None
+    ):
+        msg = "Generated image is None."
+        raise RuntimeError(msg)
 
-
-def generate_dish_img(client: OpenAI, prompt: str) -> str:
-    return send_request(client, prompt)
+    image = None
+    for part in response.candidates[0].content.parts:
+        if part.text is not None:
+            logger.info(f"Text response: {part.text}")
+        elif part.inline_data is not None and part.inline_data.data is not None:
+            image = Image.open(BytesIO(part.inline_data.data))
+    if image is None:
+        msg = "Generated image is None."
+        raise RuntimeError(msg)
+    return image
 
 
 def handler(event: dict[str, Any], context: object) -> GenImgResponse:  # noqa: ARG001
+    bucket_name = os.getenv("IMAGE_BUCKET")
+    if bucket_name is None:
+        msg = "IMAGE_BUCKET environment variable is not set"
+        raise ValueError(msg)
     dish_name = cast("str", event.get("DishName"))
     ingredients = cast("str", event.get("Ingredients"))
-    if not all([dish_name, ingredients]):
+    exec_name = cast("str", event.get("ExecName"))
+    if not all([dish_name, ingredients, exec_name]):
         msg = "Required event fields are missing"
         raise ValueError(msg)
 
-    return main(dish_name, ingredients)
+    return main(dish_name, ingredients, bucket_name, exec_name)
 
 
 @log_exec
-def main(dish_name: str, ingredients: str) -> GenImgResponse:
-    config = OpenAIConfig()
-    client = OpenAI(api_key=config.api_key)
-    prompt = (
+def main(
+    dish_name: str,
+    ingredients: str,
+    bucket_name: str,
+    exec_name: str,
+) -> GenImgResponse:
+    config = GeminiConfig()
+    client = genai.Client(api_key=config.api_key)
+    contents = (
         f"{dish_name}という料理の写真をインスタグラムに投稿される写真風に生成してください。材料は次のとおりです。"
         f"{ingredients}"
         "ただし、写真に文字は絶対に写さないでください。"
     )
-    img_url = generate_dish_img(client, prompt)
+    image = generate_dish_img(client, contents)
+    img_key = put_image(image, bucket_name, f"{exec_name}/1.png")
     return {
-        "ImgUrl": img_url,
+        "ImgKey": img_key,
     }
 
 
 if __name__ == "__main__":
-    main("", "")
+    main("", "", "", "")

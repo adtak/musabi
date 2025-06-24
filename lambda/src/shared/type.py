@@ -8,4 +8,4 @@ class GenTextResponse(TypedDict):
 
 
 class GenImgResponse(TypedDict):
-    ImgUrl: str
+    ImgKey: str
