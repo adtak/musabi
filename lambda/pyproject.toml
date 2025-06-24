@@ -14,8 +14,8 @@ edit-img = [
 ]
 gen-img = [
     "boto3>=1.37.37",
+    "google-genai>=1.21.1",
     "loguru>=0.7.3",
-    "openai>=1.75.0",
 ]
 gen-text = [
     "langchain-core>=0.3.66",
