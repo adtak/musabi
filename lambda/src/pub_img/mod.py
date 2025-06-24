@@ -1,4 +1,5 @@
 import time
+from typing import cast
 
 import boto3
 import botocore
@@ -11,38 +12,54 @@ from src.pub_img.client import Client
 def upload_images(client: Client, image_urls: list[str], caption: str) -> None:
     container_ids = []
     for image_url in image_urls:
-        response = client.create_image_media(
+        container_id = _create_and_wait_for_image(
+            client=client,
             image_url=image_url,
             caption=caption,
             is_carousel_item=True,
         )
-        conainer_id = response["id"]
-        wait_container_finish(client, conainer_id)
-        container_ids.append(conainer_id)
-    response = client.create_carousel_media(
-        caption=caption,
-        media_type="CAROUSEL",
+        container_ids.append(container_id)
+    container_id = _create_and_wait_for_carousel(
+        client=client,
         children=container_ids,
+        caption=caption,
     )
-    conainer_id = response["id"]
-    wait_container_finish(client, conainer_id)
-    media_id = client.publish_media(creation_id=conainer_id)["id"]
-    response = client.get_media(media_id=media_id)
+    client.publish_media(creation_id=container_id)["id"]
 
 
-def upload_image(client: Client, image_url: str, caption: str) -> None:
+def _create_and_wait_for_image(
+    client: Client,
+    image_url: str,
+    caption: str,
+    *,
+    is_carousel_item: bool,
+) -> str:
     response = client.create_image_media(
         image_url=image_url,
         caption=caption,
-        is_carousel_item=False,
+        is_carousel_item=is_carousel_item,
     )
-    conainer_id = response["id"]
-    wait_container_finish(client, conainer_id)
-    media_id = client.publish_media(creation_id=conainer_id)["id"]
-    response = client.get_media(media_id=media_id)
+    container_id = cast("str", response["id"])
+    _wait_container_finish(client, container_id)
+    return container_id
 
 
-def wait_container_finish(client: Client, container_id: str) -> None:
+def _create_and_wait_for_carousel(
+    client: Client,
+    children: list[str],
+    caption: str,
+) -> str:
+    response = client.create_carousel_media(
+        caption=caption,
+        media_type="CAROUSEL",
+        children=children,
+    )
+    container_id = cast("str", response["id"])
+    _wait_container_finish(client, container_id)
+    return container_id
+
+
+def _wait_container_finish(client: Client, container_id: str) -> None:
     status_code = "IN_PROGRESS"
     while status_code != "FINISHED":
         status_code = client.get_container_status(container_id=container_id)[
