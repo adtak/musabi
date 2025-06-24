@@ -92,7 +92,7 @@ def main(
     image_key: str,
     exec_name: str,
 ) -> dict[str, str]:
-    image = get_image(bucket_name, image_key)
+    image = get_image(bucket_name, image_key).convert("RGBA")
     w, h = image.size
     logger.info(f"Image size: width {w} - height {h}")
 
