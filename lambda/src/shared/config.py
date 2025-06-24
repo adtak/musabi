@@ -9,6 +9,17 @@ def get_ssm_parameter(name: str) -> str:
     return cast("str", parameter["Parameter"]["Value"])
 
 
+class GeminiConfig:
+    def __init__(self) -> None:
+        self._api_key: str | None = None
+
+    @property
+    def api_key(self) -> str:
+        if self._api_key is None:
+            self._api_key = get_ssm_parameter("/google/gemini/musabi/api-key")
+        return self._api_key
+
+
 class OpenAIConfig:
     def __init__(self) -> None:
         self._api_key: str | None = None
