@@ -1,13 +1,11 @@
-import io
 import os
 from typing import Any, TypedDict, cast
 
-import requests
 from loguru import logger
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from src.shared.logging import log_exec
-from src.shared.s3 import put_image
+from src.shared.s3 import get_image, put_image
 
 
 class TitleParams(TypedDict):
@@ -75,27 +73,26 @@ def handler(event: dict[str, Any], context: object) -> dict[str, str]:  # noqa: 
     if bucket_name is None:
         msg = "IMAGE_BUCKET environment variable is not set"
         raise ValueError(msg)
-    image_url = cast("str", event.get("ImgUrl"))
     title = cast("str", event.get("DishName"))
+    image_key = cast("str", event.get("ImgKey"))
     exec_name = cast("str", event.get("ExecName"))
 
     return main(
-        image_url,
         title,
         bucket_name,
+        image_key,
         exec_name,
     )
 
 
 @log_exec
 def main(
-    image_url: str,
     title: str,
     bucket_name: str,
+    image_key: str,
     exec_name: str,
 ) -> dict[str, str]:
-    response = requests.get(image_url, timeout=10, stream=True)
-    image = Image.open(io.BytesIO(response.raw.read())).convert("RGBA")
+    image = get_image(bucket_name, image_key)
     w, h = image.size
     logger.info(f"Image size: width {w} - height {h}")
 
