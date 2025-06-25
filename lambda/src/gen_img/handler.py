@@ -64,7 +64,7 @@ def main(
     config = GeminiConfig()
     client = genai.Client(api_key=config.api_key)
     contents = (
-        f"{dish_name}という料理の写真をインスタグラムに投稿される写真風に生成してください。材料は次のとおりです。"
+        f"{dish_name}という料理の写真をレシピ本に掲載されている写真のように生成してください。材料は次のとおりです。"
         f"{ingredients}"
         "ただし、写真に文字は絶対に写さないでください。"
     )
