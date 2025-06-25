@@ -1,4 +1,5 @@
 import os
+import random
 from typing import Any
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -25,10 +26,13 @@ class Dish(BaseModel):
 
 
 def generate_dish() -> Dish:
-    message = """
+    genres = random.choice(["和食", "洋食", "中華料理", "エスニック"])  # noqa: S311
+    main_food = random.choice(["牛肉", "豚肉", "鶏肉", "魚介類"])  # noqa: S311
+    message = f"""
 あなたは一流のシェフであり、世界中のあらゆる料理について熟知しています。
 また、探究心が強く、独創的で画期的な料理のレシピを常日頃から創作しています。
 独創的でおしゃれだけど、比較的簡単に作れる料理を一つ提案してください。
+料理は{genres}で{main_food}を使ってください。
 """
     prompt = ChatPromptTemplate.from_messages(
         [
