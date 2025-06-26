@@ -2,131 +2,67 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## プロジェクト概要
+## Common Commands
 
-Musabi は、AI を使ってレシピの生成・画像生成・画像編集・SNS 投稿を自動化するシステムです。AWS Step Functions を使用してワークフローを構築し、Lambda 関数と Container で各ステップを実行します。
+### Lambda Functions (Python)
+- `make format` - Format code using black and ruff
+- `make black` - Run black formatter on src/
+- `make ruff` - Run ruff linter with auto-fix
+- `make mypy` - Type checking with mypy
+- `make test` - Run pytest tests
+- Build: `uv sync` for dependency installation
 
-## アーキテクチャ
+### Infrastructure (TypeScript CDK)
+- `npm run build` - Compile TypeScript to JavaScript
+- `npm run test` - Run Jest unit tests
+- `npm run lint` - Run Biome linter
+- `npm run fmt` - Format code with Biome
+- `npx cdk deploy` - Deploy stack to AWS
+- `npx cdk diff` - Compare deployed vs current state
+- `npx cdk synth` - Generate CloudFormation template
 
-### 主要コンポーネント
+### ML/Utility Modules (Poetry)
+- `poetry install` - Install dependencies
+- `poetry run pytest` - Run tests
+- `black`, `ruff`, `mypy` - Linting and type checking
 
-1. **lambda/**: 各種 Lambda 関数のソースコード
+## Architecture
 
-   - `gen_text/`: OpenAI API を使用してレシピテキストを生成
-   - `gen_img/`: DALL-E 3 を使用して料理画像を生成
-   - `edit_img/`: 生成された画像にタイトルやスタイルを追加
-   - `pub_img/`: 完成した画像とレシピを SNS に投稿
+### Project Structure
+- **`lambda/`** - AWS Lambda functions (Python 3.13, uv)
+- **`iac-v2/`** - Infrastructure as Code (TypeScript CDK)
+- **`ml-v2/`** - Machine learning containers (Poetry, Python 3.11)
+- **`util/`** - Shared utilities (Poetry, Python 3.11)
+- **`iac-v1/` & `ml-v1/`** - Legacy components
 
-2. **iac-v2/**: AWS CDK を使用したインフラ構築（TypeScript）
+### Core Workflow
+Step Functions orchestrates Lambda functions in sequence:
+1. **GenText** - LLM generates recipe using OpenAI API
+2. **GenImg** - LLM generates food image using Google Gemini API
+3. **EditImg** - Adds titles and styling to images
+4. **PubImg** - Posts content to social media using Meta Graph API
 
-   - Step Functions、Lambda、ECR、S3 の設定
-   - 12 時間ごとのスケジュール実行設定
+### Lambda Functions
+Each function runs in Docker containers with specific dependency groups:
+- `gen-text`: Uses OpenAI API (SSM: `/openai/musabi/api-key`)
+- `gen-img`: Uses Google Gemini API (SSM: `/google/gemini/musabi/api-key`)
+- `edit-img`: Image processing with Pillow
+- `pub-img`: Social media posting (SSM: `/meta/musabi/*`)
 
-3. **ml-v2/**: Stable Diffusion を使用した画像生成（SageMaker 処理ジョブ用）
+### Infrastructure Components
+- S3 bucket for image storage (`musabi-bucket`)
+- ECR repositories for Lambda container images
+- EventBridge scheduled execution (every 12 hours at 2:00 and 11:00 UTC)
+- IAM policies for SSM parameters and S3 access
 
-4. **iac-v1/**: 旧バージョンのインフラ（Python CDK）
+### Configuration Management
+All API keys stored in AWS SSM Parameter Store:
+- OpenAI: `/openai/musabi/api-key`
+- Google Gemini: `/google/gemini/musabi/api-key`
+- Meta Graph API: `/meta/musabi/*` (access-token, account-id, version, graph-url)
 
-5. **util/**: 画像・音声・動画処理のユーティリティ
-
-### ワークフロー
-
-Step Functions で以下の順序で実行：
-
-1. GenText → レシピ生成
-2. GenImg → 画像生成
-3. EditImg → 画像編集（タイトル追加）
-4. PubImg → SNS 投稿
-
-## 開発コマンド
-
-### Lambda 関数 (lambda/)
-
-```bash
-# コードフォーマット
-make format
-
-# 型チェック
-make mypy
-
-# テスト実行
-make test
-```
-
-### インフラ（iac-v2/）
-
-```bash
-# TypeScriptビルド
-npm run build
-
-# CDKデプロイ
-make deploy
-
-# リント
-npm run lint
-
-# フォーマット
-npm run fmt
-
-# テスト
-npm test
-```
-
-### 機械学習（ml-v2/）
-
-```bash
-# フォーマット
-make format
-
-# 型チェック
-make mypy
-
-# テスト
-make test
-
-# Dockerビルド・デプロイ
-make deploy
-```
-
-### インフラ（iac-v1/） - Python CDK
-
-```bash
-# デプロイ
-make deploy
-
-# フォーマット
-make format
-
-# テスト
-make test
-```
-
-## 技術スタック
-
-- **Lambda**: Python 3.13 (uv), TypeScript
-- **インフラ**: AWS CDK v2 (TypeScript/Python)
-- **機械学習**: PyTorch, Diffusers, Stable Diffusion
-- **画像処理**: Pillow
-- **API**: OpenAI (GPT-4, DALL-E 3)
-- **コンテナ**: Docker, ECR
-- **ストレージ**: S3
-- **オーケストレーション**: Step Functions
-
-## 重要な設定
-
-### 環境変数
-
-- `BUCKET_NAME`: S3 バケット名（edit_img, pub_img）
-- `IMAGE_BUCKET`: 画像保存用 S3 バケット
-- `PROMPT`, `NEGATIVE_PROMPT`: ml-v2 での画像生成パラメータ
-
-### SSM パラメータ
-
-- `/openai/musabi/api-key`: OpenAI API キー
-- `/meta/musabi/*`: SNS 投稿用認証情報
-
-## 依存関係管理
-
-- Lambda: `uv` (Python 3.13)
-- iac-v2: `npm` (Node.js/TypeScript)
-- ml-v2: `poetry` (Python 3.11)
-- iac-v1: `poetry` (Python)
+### Development Notes
+- Lambda functions use dependency groups in pyproject.toml for modular installs
+- TypeScript infrastructure uses Biome for linting/formatting
+- ML components use Stable Diffusion and PyTorch
+- All Python code follows strict typing with mypy configuration
