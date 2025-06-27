@@ -64,9 +64,9 @@ def main(
     config = GeminiConfig()
     client = genai.Client(api_key=config.api_key)
     contents = (
-        f"{dish_name}という料理の写真をレシピ本に掲載されている写真のように生成してください。材料は次のとおりです。"
-        f"{ingredients}"
-        "ただし、写真に文字は絶対に写さないでください。"
+        f"{dish_name}という料理の写真をレシピ本に掲載されている写真のように生成してください。\n"
+        f"材料は次のとおりです。\n{ingredients}\n"
+        "ただし、生成する画像に材料に関する説明文は入れないでください。"
     )
     image = generate_dish_img(client, contents)
     img_key = put_image(image, bucket_name, f"{exec_name}/1.png")
