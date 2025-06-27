@@ -25,9 +25,13 @@ class Dish(BaseModel):
         return f"【作り方】\n{'\n'.join(steps)}"
 
 
-def generate_dish() -> Dish:
+def get_generate_params() -> tuple[str, str]:
     genres = random.choice(["和食", "洋食", "中華料理", "エスニック"])  # noqa: S311
     main_food = random.choice(["牛肉", "豚肉", "鶏肉", "魚介類"])  # noqa: S311
+    return (genres, main_food)
+
+
+def generate_dish(genres: str, main_food: str) -> Dish:
     message = f"""
 あなたは一流のシェフであり、世界中のあらゆる料理について熟知しています。
 また、探究心が強く、独創的で画期的な料理のレシピを常日頃から創作しています。
@@ -58,9 +62,12 @@ def handler(event: dict[str, Any], context: object) -> GenTextResponse:  # noqa:
 def main() -> GenTextResponse:
     config = OpenAIConfig()
     os.environ["OPENAI_API_KEY"] = config.api_key
-    recipe = generate_dish()
+    genres, main_food = get_generate_params()
+    recipe = generate_dish(genres, main_food)
     return {
         "DishName": recipe.dish_name,
+        "Genres": genres,
+        "MainFood": main_food,
         "Ingredients": recipe.ingredients_str(),
         "Steps": recipe.steps_str(),
     }
