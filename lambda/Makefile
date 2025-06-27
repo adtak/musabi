@@ -1,5 +1,5 @@
 .PHONY: format
-format: black ruff
+format: ruff
 
 .PHONY: ruff
 ruff:
