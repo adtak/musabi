@@ -14,7 +14,7 @@ from src.shared.type import GenTextResponse
 class Dish(BaseModel):
     dish_name: str = Field(description="料理の名前")
     ingredients: list[str] = Field(description="料理を作るのに使用する材料と分量")
-    steps: list[str] = Field(description="料理を作るための手順")
+    steps: list[str] = Field(description="料理を作るための手順。手順の番号は含めない")
 
     def ingredients_str(self) -> str:
         ingredients = [f"- {ing}" for ing in self.ingredients]
@@ -37,6 +37,14 @@ def get_message(genres: str, main_food: str) -> str:
 また、探究心が強く、独創的で画期的な料理のレシピを常日頃から創作しています。
 独創的でおしゃれだけど、比較的簡単に作れる料理を一つ提案してください。
 料理は{genres}で{main_food}を使ってください。
+"""
+
+
+def get_cp2077_message() -> str:
+    return """
+今は2077年で、ゲーム「Cyberpunk2077」のような世界です。
+そこであなたは一流のシェフであり、世界中のあらゆる料理について熟知しています。
+その世界で食べられているであろう料理を想像し、サイバーパンクな料理を一つ提案してください。
 """
 
 
