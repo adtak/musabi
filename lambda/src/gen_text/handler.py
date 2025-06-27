@@ -31,13 +31,16 @@ def get_generate_params() -> tuple[str, str]:
     return (genres, main_food)
 
 
-def generate_dish(genres: str, main_food: str) -> Dish:
-    message = f"""
+def get_message(genres: str, main_food: str) -> str:
+    return f"""
 あなたは一流のシェフであり、世界中のあらゆる料理について熟知しています。
 また、探究心が強く、独創的で画期的な料理のレシピを常日頃から創作しています。
 独創的でおしゃれだけど、比較的簡単に作れる料理を一つ提案してください。
 料理は{genres}で{main_food}を使ってください。
 """
+
+
+def generate_dish(message: str) -> Dish:
     prompt = ChatPromptTemplate.from_messages(
         [
             ("human", message),
@@ -63,7 +66,7 @@ def main() -> GenTextResponse:
     config = OpenAIConfig()
     os.environ["OPENAI_API_KEY"] = config.api_key
     genres, main_food = get_generate_params()
-    recipe = generate_dish(genres, main_food)
+    recipe = generate_dish(get_message(genres, main_food))
     return {
         "DishName": recipe.dish_name,
         "Genres": genres,
