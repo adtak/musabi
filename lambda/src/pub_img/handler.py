@@ -45,7 +45,7 @@ def handler(event: dict[str, Any], context: object) -> dict[str, Any]:  # noqa: 
         {
             "image_bucket": image_bucket,
             "title_image_key": title_image_key,
-            "image_key": title_image_key,
+            "image_key": image_key,
         },
         {
             "dish_name": dish_name,
