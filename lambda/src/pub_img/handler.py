@@ -79,7 +79,7 @@ def main(
     )
     comments = "※このレシピと写真はAIによって自動で作成されたものです。\nレシピの内容について確認はしていないため、食べられる料理が作成できない恐れがあります。"  # noqa: E501
     recipe = f"{text_args['dish_name']}のレシピは以下の通りです。\n\n{text_args['ingredients']}\n\n{text_args['steps']}\n\nぜひ試してみてください！"  # noqa: E501, RUF001
-    hashtag = f"#レシピ #料理 #お菓子 #クッキング #今日の献立 #{text_args['genres']} #{text_args['main_food']}レシピ #AI #AI #AIレシピ"  # noqa: E501
+    hashtag = f"#レシピ #料理 #お菓子 #クッキング #今日の献立 #{text_args['genres']} #{text_args['main_food']}レシピ #AI #AIレシピ"  # noqa: E501
     mod.upload_images(
         client,
         image_urls=[title_image_url, image_url],
