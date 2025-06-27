@@ -3,6 +3,8 @@ from typing import TypedDict
 
 class GenTextResponse(TypedDict):
     DishName: str
+    Genres: str
+    MainFood: str
     Ingredients: str
     Steps: str
 
