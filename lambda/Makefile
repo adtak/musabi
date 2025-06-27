@@ -1,10 +1,6 @@
 .PHONY: format
 format: black ruff
 
-.PHONY: black
-black:
-				uv run black src/*
-
 .PHONY: ruff
 ruff:
 				uv run ruff check src/* --no-cache --fix
