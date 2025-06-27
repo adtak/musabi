@@ -33,6 +33,7 @@ jobs:
       - name: Format check
         run: |
           cd lambda
+          uv run black --check src/*
           uv run ruff check src/* --no-cache
 
       - name: Type check

@@ -1,5 +1,9 @@
 .PHONY: format
-format: ruff
+format: black ruff
+
+.PHONY: black
+black:
+				uv run black src/*
 
 .PHONY: ruff
 ruff:
