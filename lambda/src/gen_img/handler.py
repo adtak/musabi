@@ -66,6 +66,7 @@ def main(
     contents = (
         f"{dish_name}という料理の写真をレシピ本に掲載されている写真のように生成してください。\n"
         f"材料は次のとおりです。\n{ingredients}\n"
+        "解像度は1024x1024でお願いします。"
         "ただし、生成する画像に材料に関する説明文は入れないでください。"
     )
     image = generate_dish_img(client, contents)
