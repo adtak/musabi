@@ -9,6 +9,7 @@ requires-python = ">=3.13"
 edit-img = [
     "loguru>=0.7.3",
     "pillow>=11.2.1",
+    "pydantic>=2.11.3",
     "requests>=2.32.3",
     "types-requests>=2.32.4.20250611",
 ]
@@ -17,14 +18,17 @@ gen-img = [
     "google-genai>=1.21.1",
     "loguru>=0.7.3",
     "pillow>=11.2.1",
+    "pydantic>=2.11.3",
 ]
 gen-text = [
     "langchain-core>=0.3.66",
     "langchain-openai>=0.3.23",
     "loguru>=0.7.3",
+    "pydantic>=2.11.3",
 ]
 pub-img = [
     "loguru>=0.7.3",
+    "pydantic>=2.11.3",
     "requests>=2.32.3",
     "types-requests>=2.32.4.20250611",
 ]

@@ -320,6 +320,7 @@ dev = [
 edit-img = [
     { name = "loguru" },
     { name = "pillow" },
+    { name = "pydantic" },
     { name = "requests" },
     { name = "types-requests" },
 ]
@@ -328,14 +329,17 @@ gen-img = [
     { name = "google-genai" },
     { name = "loguru" },
     { name = "pillow" },
+    { name = "pydantic" },
 ]
 gen-text = [
     { name = "langchain-core" },
     { name = "langchain-openai" },
     { name = "loguru" },
+    { name = "pydantic" },
 ]
 pub-img = [
     { name = "loguru" },
+    { name = "pydantic" },
     { name = "requests" },
     { name = "types-requests" },
 ]
@@ -352,6 +356,7 @@ dev = [
 edit-img = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pillow", specifier = ">=11.2.1" },
+    { name = "pydantic", specifier = ">=2.11.3" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "types-requests", specifier = ">=2.32.4.20250611" },
 ]
@@ -360,14 +365,17 @@ gen-img = [
     { name = "google-genai", specifier = ">=1.21.1" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pillow", specifier = ">=11.2.1" },
+    { name = "pydantic", specifier = ">=2.11.3" },
 ]
 gen-text = [
     { name = "langchain-core", specifier = ">=0.3.66" },
     { name = "langchain-openai", specifier = ">=0.3.23" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pydantic", specifier = ">=2.11.3" },
 ]
 pub-img = [
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pydantic", specifier = ">=2.11.3" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "types-requests", specifier = ">=2.32.4.20250611" },
 ]
