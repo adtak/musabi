@@ -25,17 +25,18 @@ class Dish(BaseModel):
         return f"【作り方】\n{'\n'.join(steps)}"
 
 
-def get_generate_params() -> tuple[str, str]:
+def get_generate_params() -> tuple[str, str, str]:
     genres = random.choice(["和食", "洋食", "中華料理", "エスニック"])  # noqa: S311
-    main_food = random.choice(["牛肉", "豚肉", "鶏肉", "魚介類"])  # noqa: S311
-    return (genres, main_food)
+    main_food = random.choice(  # noqa: S311
+        ["牛肉", "豚肉", "鶏肉", "魚介類", "野菜", "豆腐"],
+    )
+    theme = random.choice(["ヘルシー", "時短", "オシャレ", "ガッツリ"])  # noqa: S311
+    return (genres, main_food, theme)
 
 
-def get_message(genres: str, main_food: str) -> str:
+def get_message(genres: str, main_food: str, theme: str) -> str:
     return f"""
-あなたは一流のシェフであり、世界中のあらゆる料理について熟知しています。
-また、探究心が強く、独創的で画期的な料理のレシピを常日頃から創作しています。
-独創的でおしゃれだけど、比較的簡単に作れる料理を一つ提案してください。
+独創的で画期的だけど、比較的簡単に作れる{theme}料理を一つ提案してください。
 料理は{genres}で{main_food}を使ってください。
 """
 
@@ -73,12 +74,13 @@ def handler(event: dict[str, Any], context: object) -> GenTextResponse:  # noqa:
 def main() -> GenTextResponse:
     config = OpenAIConfig()
     os.environ["OPENAI_API_KEY"] = config.api_key
-    genres, main_food = get_generate_params()
-    recipe = generate_dish(get_message(genres, main_food))
+    genres, main_food, theme = get_generate_params()
+    recipe = generate_dish(get_message(genres, main_food, theme))
     return {
         "DishName": recipe.dish_name,
         "Genres": genres,
         "MainFood": main_food,
+        "Theme": theme,
         "Ingredients": recipe.ingredients_str(),
         "Steps": recipe.steps_str(),
     }

@@ -226,6 +226,7 @@ const createStateMachine = (
       Steps: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Steps"),
       Genres: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Genres"),
       MainFood: sfn.JsonPath.stringAt("$.GenTextResults.Payload.MainFood"),
+      Theme: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Theme"),
       TitleImgKey: sfn.JsonPath.stringAt(
         "$.EditImgResults.Payload.TitleImgKey"
       ),

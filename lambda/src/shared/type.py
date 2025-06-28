@@ -5,6 +5,7 @@ class GenTextResponse(TypedDict):
     DishName: str
     Genres: str
     MainFood: str
+    Theme: str
     Ingredients: str
     Steps: str
 
