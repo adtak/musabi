@@ -1,11 +1,30 @@
 import os
-from typing import Any, TypedDict, cast
+from typing import Any, Self, TypedDict
 
 from loguru import logger
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from pydantic import BaseModel
 
 from src.shared.logging import log_exec
 from src.shared.s3 import get_image, put_image
+
+
+class EditImgArgs(BaseModel):
+    bucket_name: str
+    title: str
+    image_key: str
+    exec_name: str
+
+    @classmethod
+    def from_event(cls, event: dict[str, Any]) -> Self:
+        return cls.model_validate(
+            {
+                "bucket_name": os.getenv("IMAGE_BUCKET"),
+                "title": event.get("DishName"),
+                "image_key": event.get("ImgKey"),
+                "exec_name": event.get("ExecName"),
+            },
+        )
 
 
 class TitleParams(TypedDict):
@@ -69,43 +88,26 @@ def _calc_fontsize(
 
 
 def handler(event: dict[str, Any], context: object) -> dict[str, str]:  # noqa: ARG001
-    bucket_name = os.getenv("IMAGE_BUCKET")
-    if bucket_name is None:
-        msg = "IMAGE_BUCKET environment variable is not set"
-        raise ValueError(msg)
-    title = cast("str", event.get("DishName"))
-    image_key = cast("str", event.get("ImgKey"))
-    exec_name = cast("str", event.get("ExecName"))
-    if not all([title, image_key, exec_name]):
-        msg = "Required event fields are missing"
-        raise ValueError(msg)
-
-    return main(
-        title,
-        bucket_name,
-        image_key,
-        exec_name,
-    )
+    return main(EditImgArgs.from_event(event))
 
 
 @log_exec
-def main(
-    title: str,
-    bucket_name: str,
-    image_key: str,
-    exec_name: str,
-) -> dict[str, str]:
-    image = get_image(bucket_name, image_key).convert("RGBA")
+def main(args: EditImgArgs) -> dict[str, str]:
+    image = get_image(args.bucket_name, args.image_key).convert("RGBA")
     w, h = image.size
     logger.info(f"Image size: width {w} - height {h}")
 
     blur_image = image.filter(ImageFilter.GaussianBlur(4))
     font_path = "src/edit_img/fonts/Bold.ttf"
-    title_image = create_title(w, h, title, font_path)
+    title_image = create_title(w, h, args.title, font_path)
     result_image = Image.alpha_composite(blur_image, title_image)
 
-    title_image_key = put_image(result_image, bucket_name, f"{exec_name}/0.png")
-    image_key = put_image(image, bucket_name, f"{exec_name}/1.png")
+    title_image_key = put_image(
+        result_image,
+        args.bucket_name,
+        f"{args.exec_name}/0.png",
+    )
+    image_key = put_image(image, args.bucket_name, f"{args.exec_name}/1.png")
     return {
         "TitleImgKey": title_image_key,
         "ImgKey": image_key,
@@ -113,4 +115,4 @@ def main(
 
 
 if __name__ == "__main__":
-    main("", "", "", "")
+    main(EditImgArgs(bucket_name="", title="", image_key="", exec_name=""))
