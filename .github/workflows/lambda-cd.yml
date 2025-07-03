@@ -3,30 +3,22 @@ name: Deploy to AWS
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        default: 'production'
-        type: choice
-        options:
-          - production
-          - staging
       functions:
         description: 'Lambda functions to deploy (comma-separated or "all")'
         required: true
-        default: 'all'
+        default: "all"
         type: string
 
 env:
   AWS_REGION: ap-northeast-1
-  
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -56,83 +48,61 @@ jobs:
       - name: Build and push Docker images
         working-directory: ./lambda
         env:
-          AWS_ACCOUNT_ID: ${{ steps.login-ecr.outputs.registry }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           FUNCTIONS: ${{ steps.functions.outputs.functions }}
         run: |
-          # Extract account ID from registry URL
-          AWS_ACCOUNT_ID=$(echo $AWS_ACCOUNT_ID | cut -d'.' -f1)
-          
           # Convert comma-separated functions to array
-          IFS=',' read -ra FUNC_ARRAY <<< "$FUNCTIONS"
-          
+          IFS=',' read -ra func_array <<< "$FUNCTIONS"
+
           # Build and push each function
-          for func in "${FUNC_ARRAY[@]}"; do
-            # Remove hyphens from function name for target
-            func_clean=$(echo $func | tr '-' '_')
-            
-            echo "Building and pushing $func..."
-            
-            # Build Docker image
+          for func in "${func_array[@]}"; do
+            echo "Building and pushing ${func} ..."
+
             docker buildx build \
-              --platform linux/amd64 \
               --provenance=false \
-              --build-arg "INSTALL_GROUP=$func" \
-              --target "$func_clean" \
-              -t "musabi-$func:latest" \
+              --build-arg "INSTALL_GROUP=${func}" \
+              --target "$func" \
+              -t "${REGISTRY}/musabi-${func}:latest" \
               -f docker/Dockerfile \
               .
-            
-            # Tag and push to ECR
-            ECR_REPO_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/musabi-$func"
-            docker tag "musabi-$func:latest" "$ECR_REPO_URI:latest"
-            docker push "$ECR_REPO_URI:latest"
-            
-            echo "✅ Successfully pushed $func to ECR"
+            docker push "${REGISTRY}/musabi-${func}:latest"
+
+            echo "✅ Successfully pushed ${func} to ECR"
           done
 
       - name: Update Lambda functions
         env:
-          AWS_ACCOUNT_ID: ${{ steps.login-ecr.outputs.registry }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           FUNCTIONS: ${{ steps.functions.outputs.functions }}
         run: |
-          # Extract account ID from registry URL
-          AWS_ACCOUNT_ID=$(echo $AWS_ACCOUNT_ID | cut -d'.' -f1)
-          
           # Convert comma-separated functions to array
-          IFS=',' read -ra FUNC_ARRAY <<< "$FUNCTIONS"
-          
+          IFS=',' read -ra func_array <<< "$FUNCTIONS"
+
           # Update each Lambda function
-          for func in "${FUNC_ARRAY[@]}"; do
-            # Convert function name to Lambda function name format
-            case $func in
+          for func in "${func_array[@]}"; do
+            case "$func" in
               "gen-text") lambda_name="GenTextLambda" ;;
               "gen-img") lambda_name="GenImgLambda" ;;
               "edit-img") lambda_name="EditImgLambda" ;;
               "pub-img") lambda_name="PubImgLambda" ;;
-              *) echo "Unknown function: $func"; exit 1 ;;
+              *) echo "Unknown function: ${func}"; exit 1 ;;
             esac
-            
-            ECR_REPO_URI="$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/musabi-$func:latest"
-            
-            echo "Updating $lambda_name with image $ECR_REPO_URI..."
-            
-            # Update Lambda function code
+            echo "Updating $lambda_name with new image..."
+
             aws lambda update-function-code \
               --function-name "$lambda_name" \
-              --image-uri "$ECR_REPO_URI" \
+              --image-uri "${REGISTRY}/musabi-${func}:latest" \
               --no-cli-pager
-            
-            # Wait for update to complete
+
             aws lambda wait function-updated \
               --function-name "$lambda_name"
-            
-            echo "✅ Successfully updated $lambda_name"
+
+            echo "✅ Successfully updated ${lambda_name}"
           done
 
       - name: Deployment summary
         run: |
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- Environment: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
           echo "- Functions deployed: ${{ steps.functions.outputs.functions }}" >> $GITHUB_STEP_SUMMARY
           echo "- AWS Region: ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
           echo "- Deployment completed at: $(date)" >> $GITHUB_STEP_SUMMARY
