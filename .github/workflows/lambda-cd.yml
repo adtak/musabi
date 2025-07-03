@@ -99,13 +99,13 @@ jobs:
           for func in "${func_array[@]}"; do
             case "$func" in
               "gen-text")
-                lambda_name="GenTextLambda" ;;
+                lambda_name="GenTextFunction" ;;
               "gen-img")
-                lambda_name="GenImgLambda" ;;
+                lambda_name="GenImgFunction" ;;
               "edit-img")
-                lambda_name="EditImgLambda" ;;
+                lambda_name="EditImgFunction" ;;
               "pub-img")
-                lambda_name="PubImgLambda" ;;
+                lambda_name="PubImgFunction" ;;
               *)
                 echo "Unknown function: ${func}"; exit 1 ;;
             esac
