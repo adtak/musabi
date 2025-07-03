@@ -62,6 +62,92 @@ Step Functions で以下の順序で自動実行されます：
 - **Frameworks**: PyTorch, Diffusers
 - **Models**: Stable Diffusion
 
+## 🚀 GitHub Actions CD Setup
+
+### セットアップ手順
+
+#### 1. GitHub Secrets の設定
+
+以下のシークレットを GitHub リポジトリに設定：
+
+```
+AWS_ROLE_ARN: arn:aws:iam::YOUR_ACCOUNT_ID:role/MusabiGitHubActionsRole
+```
+
+#### 2. AWS IAM ロールの作成
+
+GitHub Actions が AWS リソースにアクセスするための IAM ロールを作成します：
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:YOUR_GITHUB_USERNAME/musabi:ref:refs/heads/main"
+        }
+      }
+    }
+  ]
+}
+```
+
+#### 3. IAM ロールポリシーの設定
+
+以下のポリシーを IAM ロールにアタッチします：
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload"
+      ],
+      "Resource": "arn:aws:ecr:ap-northeast-1:YOUR_ACCOUNT_ID:repository/musabi-*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:UpdateFunctionCode",
+        "lambda:GetFunction",
+        "lambda:PublishVersion"
+      ],
+      "Resource": [
+        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:GenTextLambda",
+        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:GenImgLambda",
+        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:EditImgLambda",
+        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:PubImgLambda"
+      ]
+    }
+  ]
+}
+```
+
+#### 4. GitHub OIDC プロバイダーの設定
+
+AWS IAM コンソールで OIDC プロバイダーを作成します：
+
+- プロバイダー URL: `https://token.actions.githubusercontent.com`
+- 対象者: `sts.amazonaws.com`
+
 ---
 
 **Musabi** - AI-Powered Recipe & Content Creation System
