@@ -36,6 +36,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Validate function names
+        run: |
+          if [ "${{ inputs.functions }}" != "all" ]; then
+            IFS=',' read -ra func_array <<< "${{ inputs.functions }}"
+            for func in "${func_array[@]}"; do
+              func=$(echo "$func" | xargs)  # trim whitespace
+              case "$func" in
+                "gen-text"|"gen-img"|"edit-img"|"pub-img")
+                  echo "✅ Valid function: ${func}" ;;
+                *)
+                  echo "❌ Invalid function name: ${func}"
+                  echo "Valid functions: gen-text, gen-img, edit-img, pub-img"
+                  exit 1 ;;
+              esac
+            done
+          fi
+
       - name: Determine functions to deploy
         id: functions
         run: |
@@ -81,11 +98,16 @@ jobs:
           # Update each Lambda function
           for func in "${func_array[@]}"; do
             case "$func" in
-              "gen-text") lambda_name="GenTextLambda" ;;
-              "gen-img") lambda_name="GenImgLambda" ;;
-              "edit-img") lambda_name="EditImgLambda" ;;
-              "pub-img") lambda_name="PubImgLambda" ;;
-              *) echo "Unknown function: ${func}"; exit 1 ;;
+              "gen-text")
+                lambda_name="GenTextLambda" ;;
+              "gen-img")
+                lambda_name="GenImgLambda" ;;
+              "edit-img")
+                lambda_name="EditImgLambda" ;;
+              "pub-img")
+                lambda_name="PubImgLambda" ;;
+              *)
+                echo "Unknown function: ${func}"; exit 1 ;;
             esac
             echo "Updating $lambda_name with new image..."
 
