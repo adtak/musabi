@@ -30,22 +30,22 @@ export class SfnStack extends cdk.Stack {
     });
     const genTextFunction = createGenTextFunction(
       this,
-      props.genTextRepository
+      props.genTextRepository,
     );
     const genImgFunction = createGenImgFunction(
       this,
       props.genImgRepository,
-      bucket
+      bucket,
     );
     const editImgFunction = createEditImgFunction(
       this,
       props.editImgRepository,
-      bucket
+      bucket,
     );
     const pubImgFunction = createPubImgFunction(
       this,
       props.pubImgRepository,
-      bucket
+      bucket,
     );
     const stateMachine = createStateMachine(
       this,
@@ -53,7 +53,7 @@ export class SfnStack extends cdk.Stack {
       genImgFunction,
       editImgFunction,
       pubImgFunction,
-      bucket.bucketName
+      bucket.bucketName,
     );
 
     new events.Rule(this, "MusabiEventsRule", {
@@ -76,9 +76,10 @@ const createGenTextFunction = (scope: Construct, ecrRepo: ecr.Repository) => {
     scope,
     "GenTextLambda",
     {
+      functionName: "GenTextFunction",
       code: lambda.DockerImageCode.fromEcr(ecrRepo),
       timeout: cdk.Duration.minutes(3),
-    }
+    },
   );
   genTextFunction.addToRolePolicy(
     new iam.PolicyStatement({
@@ -87,7 +88,7 @@ const createGenTextFunction = (scope: Construct, ecrRepo: ecr.Repository) => {
       resources: [
         `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/openai/musabi/*`,
       ],
-    })
+    }),
   );
   return genTextFunction;
 };
@@ -95,9 +96,10 @@ const createGenTextFunction = (scope: Construct, ecrRepo: ecr.Repository) => {
 const createGenImgFunction = (
   scope: Construct,
   ecrRepo: ecr.Repository,
-  bucket: s3.Bucket
+  bucket: s3.Bucket,
 ) => {
   const genImgFunction = new lambda.DockerImageFunction(scope, "GenImgLambda", {
+    functionName: "GenImgFunction",
     code: lambda.DockerImageCode.fromEcr(ecrRepo),
     timeout: cdk.Duration.minutes(3),
     environment: {
@@ -109,7 +111,7 @@ const createGenImgFunction = (
       effect: iam.Effect.ALLOW,
       actions: ["s3:PutObject"],
       resources: [bucket.arnForObjects("*")],
-    })
+    }),
   );
   genImgFunction.addToRolePolicy(
     new iam.PolicyStatement({
@@ -118,7 +120,7 @@ const createGenImgFunction = (
       resources: [
         `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/google/gemini/musabi/*`,
       ],
-    })
+    }),
   );
   return genImgFunction;
 };
@@ -126,25 +128,26 @@ const createGenImgFunction = (
 const createEditImgFunction = (
   scope: Construct,
   ecrRepo: ecr.Repository,
-  bucket: s3.Bucket
+  bucket: s3.Bucket,
 ) => {
   const editImgFunction = new lambda.DockerImageFunction(
     scope,
     "EditImgLambda",
     {
+      functionName: "EditImgFunction",
       code: lambda.DockerImageCode.fromEcr(ecrRepo),
       timeout: cdk.Duration.minutes(3),
       environment: {
         IMAGE_BUCKET: bucket.bucketName,
       },
-    }
+    },
   );
   editImgFunction.addToRolePolicy(
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["s3:GetObject", "s3:PutObject"],
       resources: [bucket.arnForObjects("*")],
-    })
+    }),
   );
   return editImgFunction;
 };
@@ -152,9 +155,10 @@ const createEditImgFunction = (
 const createPubImgFunction = (
   scope: Construct,
   ecrRepo: ecr.Repository,
-  bucket: s3.Bucket
+  bucket: s3.Bucket,
 ) => {
   const pubImgFunction = new lambda.DockerImageFunction(scope, "PubImgLambda", {
+    functionName: "PubImgFunction",
     code: lambda.DockerImageCode.fromEcr(ecrRepo),
     timeout: cdk.Duration.minutes(3),
     environment: {
@@ -166,7 +170,7 @@ const createPubImgFunction = (
       effect: iam.Effect.ALLOW,
       actions: ["s3:GetObject"],
       resources: [bucket.arnForObjects("*")],
-    })
+    }),
   );
   pubImgFunction.addToRolePolicy(
     new iam.PolicyStatement({
@@ -175,7 +179,7 @@ const createPubImgFunction = (
       resources: [
         `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/meta/musabi/*`,
       ],
-    })
+    }),
   );
   return pubImgFunction;
 };
@@ -186,7 +190,7 @@ const createStateMachine = (
   genImgFunction: lambda.IFunction,
   editImgFunction: lambda.IFunction,
   pubImgFunction: lambda.IFunction,
-  bucketName: string
+  bucketName: string,
 ) => {
   const genTextStep = new sfn_tasks.LambdaInvoke(scope, "GenText", {
     lambdaFunction: genTextFunction,
@@ -199,7 +203,7 @@ const createStateMachine = (
     payload: sfn.TaskInput.fromObject({
       DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
       Ingredients: sfn.JsonPath.stringAt(
-        "$.GenTextResults.Payload.Ingredients"
+        "$.GenTextResults.Payload.Ingredients",
       ),
       ExecName: sfn.JsonPath.stringAt("$$.Execution.Name"),
     }),
@@ -221,14 +225,14 @@ const createStateMachine = (
     payload: sfn.TaskInput.fromObject({
       DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
       Ingredients: sfn.JsonPath.stringAt(
-        "$.GenTextResults.Payload.Ingredients"
+        "$.GenTextResults.Payload.Ingredients",
       ),
       Steps: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Steps"),
       Genres: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Genres"),
       MainFood: sfn.JsonPath.stringAt("$.GenTextResults.Payload.MainFood"),
       Theme: sfn.JsonPath.stringAt("$.GenTextResults.Payload.Theme"),
       TitleImgKey: sfn.JsonPath.stringAt(
-        "$.EditImgResults.Payload.TitleImgKey"
+        "$.EditImgResults.Payload.TitleImgKey",
       ),
       ImgKey: sfn.JsonPath.stringAt("$.GenImgResults.Payload.ImgKey"),
       DryRun: sfn.JsonPath.stringAt("$.DryRun"),
@@ -243,7 +247,7 @@ const createStateMachine = (
         .next(genImgStep)
         .next(editImgStep)
         .next(pubImgStep)
-        .next(successState)
+        .next(successState),
     ),
     timeout: cdk.Duration.minutes(10),
   });
