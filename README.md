@@ -70,7 +70,7 @@ Step Functions で以下の順序で自動実行されます：
 
 以下のシークレットを GitHub リポジトリに設定：
 
-```
+```txt
 AWS_ROLE_ARN: arn:aws:iam::YOUR_ACCOUNT_ID:role/MusabiGitHubActionsRole
 ```
 
@@ -111,9 +111,7 @@ GitHub Actions が AWS リソースにアクセスするための IAM ロール�
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": [
-        "ecr:GetAuthorizationToken"
-      ],
+      "Action": ["ecr:GetAuthorizationToken"],
       "Resource": "*"
     },
     {
@@ -134,13 +132,14 @@ GitHub Actions が AWS リソースにアクセスするための IAM ロール�
       "Action": [
         "lambda:UpdateFunctionCode",
         "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration",
         "lambda:PublishVersion"
       ],
       "Resource": [
-        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:GenTextLambda",
-        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:GenImgLambda",
-        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:EditImgLambda",
-        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:PubImgLambda"
+        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:GenTextFunction",
+        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:GenImgFunction",
+        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:EditImgFunction",
+        "arn:aws:lambda:ap-northeast-1:YOUR_ACCOUNT_ID:function:PubImgFunction"
       ]
     }
   ]
