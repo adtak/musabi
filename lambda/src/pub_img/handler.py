@@ -50,10 +50,6 @@ def main(args: PubImgArgs) -> dict[str, Any]:
         logger.info(f"DryRun: {args.dry_run}. Finish no pub image.")
         return {}
     client = Client(MetaConfig())
-    title_image_url = mod.create_presigned_url(
-        args.image_bucket,
-        args.title_image_key,
-    )
     image_url = mod.create_presigned_url(
         args.image_bucket,
         args.image_key,
@@ -63,7 +59,7 @@ def main(args: PubImgArgs) -> dict[str, Any]:
     hashtag = f"#レシピ #料理 #お菓子 #クッキング #今日の献立 #{args.genres} #{args.main_food}レシピ #{args.theme}レシピ #AI #AIレシピ"  # noqa: E501
     mod.upload_images(
         client,
-        image_urls=[title_image_url, image_url],
+        image_urls=[image_url],
         caption=f"\n{args.dish_name}\n\n{comments}\n\n{recipe}\n\n{hashtag}",
     )
     return {}
