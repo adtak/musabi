@@ -57,9 +57,9 @@ def main(args: PubImgArgs) -> dict[str, Any]:
     comments = "※このレシピと写真はAIによって自動で作成されたものです。\nレシピの内容について確認はしていないため、食べられる料理が作成できない恐れがあります。"  # noqa: E501
     recipe = f"{args.dish_name}のレシピは以下の通りです。\n\n{args.ingredients}\n\n{args.steps}\n\nぜひ試してみてください！"  # noqa: E501, RUF001
     hashtag = f"#レシピ #料理 #お菓子 #クッキング #今日の献立 #{args.genres} #{args.main_food}レシピ #{args.theme}レシピ #AI #AIレシピ"  # noqa: E501
-    mod.upload_images(
+    mod.upload_image(
         client,
-        image_urls=[image_url],
+        image_url=image_url,
         caption=f"\n{args.dish_name}\n\n{comments}\n\n{recipe}\n\n{hashtag}",
     )
     return {}

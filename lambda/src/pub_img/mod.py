@@ -9,6 +9,16 @@ from loguru import logger
 from src.pub_img.client import Client
 
 
+def upload_image(client: Client, image_url: str, caption: str) -> None:
+    container_id = _create_and_wait_for_image(
+        client=client,
+        image_url=image_url,
+        caption=caption,
+        is_carousel_item=True,
+    )
+    client.publish_media(creation_id=container_id)["id"]
+
+
 def upload_images(client: Client, image_urls: list[str], caption: str) -> None:
     container_ids = []
     for image_url in image_urls:
