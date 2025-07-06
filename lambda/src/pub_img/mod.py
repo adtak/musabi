@@ -14,7 +14,7 @@ def upload_image(client: Client, image_url: str, caption: str) -> None:
         client=client,
         image_url=image_url,
         caption=caption,
-        is_carousel_item=True,
+        is_carousel_item=False,
     )
     client.publish_media(creation_id=container_id)["id"]
 
