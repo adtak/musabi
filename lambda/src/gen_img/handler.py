@@ -34,7 +34,7 @@ class GenImgArgs(BaseModel):
 
 def generate_dish_img(client: genai.Client, contents: str) -> Image.Image:
     response = client.models.generate_content(
-        model="gemini-2.0-flash-preview-image-generation",
+        model="gemini-2.5-pro",
         contents=contents,
         config=types.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"]),
     )
