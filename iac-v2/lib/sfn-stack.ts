@@ -231,7 +231,7 @@ const createStateMachine = (
   const editImgStep = new sfn_tasks.LambdaInvoke(scope, "EditImg", {
     lambdaFunction: editImgFunction,
     payload: sfn.TaskInput.fromObject({
-      ImgKey: sfn.JsonPath.stringAt("$.GenImgResults0.Payload.ImgKey"),
+      ImgKey: sfn.JsonPath.stringAt("$.GenImgResults-0.Payload.ImgKey"),
       DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
       BucketName: bucketName,
       ExecName: sfn.JsonPath.stringAt("$$.Execution.Name"),
