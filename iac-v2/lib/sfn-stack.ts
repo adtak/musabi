@@ -186,6 +186,32 @@ const createPubImgFunction = (
   return pubImgFunction;
 };
 
+const createParallelGenImgStep = (
+  scope: Construct,
+  genImgFunction: lambda.IFunction,
+) => {
+  const parallelGenImgStep = new sfn.Parallel(scope, "ParallelGenImg", {
+    resultPath: "$.ParallelGenImgResults",
+  });
+  for (let i = 0; i < PARALLEL_COUNT; i++) {
+    const genImgStep = new sfn_tasks.LambdaInvoke(scope, `GenImg-${i}`, {
+      lambdaFunction: genImgFunction,
+      integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
+      payload: sfn.TaskInput.fromObject({
+        DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
+        Ingredients: sfn.JsonPath.stringAt(
+          "$.GenTextResults.Payload.Ingredients",
+        ),
+        ExecName: sfn.JsonPath.stringAt("$$.Execution.Name"),
+        ParallelIndex: i,
+      }),
+      resultPath: `$.GenImgResults-${i}`,
+    });
+    parallelGenImgStep.branch(genImgStep);
+  }
+  return parallelGenImgStep;
+};
+
 const createStateMachine = (
   scope: Construct,
   genTextFunction: lambda.IFunction,
@@ -200,32 +226,7 @@ const createStateMachine = (
     resultPath: "$.GenTextResults",
   });
 
-  // Create parallel GenImg steps
-  const genImgSteps = [];
-  for (let i = 0; i < PARALLEL_COUNT; i++) {
-    const genImgStep = new sfn_tasks.LambdaInvoke(scope, `GenImg${i}`, {
-      lambdaFunction: genImgFunction,
-      integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
-      payload: sfn.TaskInput.fromObject({
-        DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
-        Ingredients: sfn.JsonPath.stringAt(
-          "$.GenTextResults.Payload.Ingredients",
-        ),
-        ExecName: sfn.JsonPath.stringAt("$$.Execution.Name"),
-        ParallelIndex: i,
-      }),
-      resultPath: `$.GenImgResults${i}`,
-    });
-    genImgSteps.push(genImgStep);
-  }
-
-  const parallelGenImgStep = new sfn.Parallel(scope, "ParallelGenImg", {
-    resultPath: "$.ParallelGenImgResults",
-  });
-
-  for (const step of genImgSteps) {
-    parallelGenImgStep.branch(step);
-  }
+  const parallelGenImgStep = createParallelGenImgStep(scope, genImgFunction);
 
   const editImgStep = new sfn_tasks.LambdaInvoke(scope, "EditImg", {
     lambdaFunction: editImgFunction,
@@ -238,6 +239,7 @@ const createStateMachine = (
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
     resultPath: "$.EditImgResults",
   });
+
   const pubImgStep = new sfn_tasks.LambdaInvoke(scope, "PubImg", {
     lambdaFunction: pubImgFunction,
     payload: sfn.TaskInput.fromObject({
@@ -257,7 +259,9 @@ const createStateMachine = (
     }),
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
   });
+
   const successState = new sfn.Succeed(scope, "Succeded");
+
   return new sfn.StateMachine(scope, "MusabiStateMachine", {
     stateMachineName: "musabi-statemachine",
     definitionBody: sfn.DefinitionBody.fromChainable(
