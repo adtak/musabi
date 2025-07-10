@@ -5,6 +5,7 @@ import * as ecr from "aws-cdk-lib/aws-ecr";
 export class EcrStack extends cdk.Stack {
   genTextRepository: ecr.Repository;
   genImgRepository: cdk.aws_ecr.Repository;
+  selectImgRepository: cdk.aws_ecr.Repository;
   editImgRepository: cdk.aws_ecr.Repository;
   pubImgRepository: cdk.aws_ecr.Repository;
 
@@ -20,6 +21,11 @@ export class EcrStack extends cdk.Stack {
       this,
       "GenImgRepository",
       "musabi-gen-img",
+    );
+    this.selectImgRepository = createEcrRepository(
+      this,
+      "SelectImgRepository",
+      "musabi-select-img",
     );
     this.editImgRepository = createEcrRepository(
       this,
