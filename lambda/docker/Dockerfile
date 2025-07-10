@@ -34,6 +34,15 @@ COPY ../src/shared ${LAMBDA_TASK_ROOT}/src/shared/
 
 CMD [ "src.gen_img.handler.handler" ]
 
+# SelectImgLambda
+FROM public.ecr.aws/lambda/python:3.13 AS select-img
+
+COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
+COPY ../src/select_img ${LAMBDA_TASK_ROOT}/src/select_img/
+COPY ../src/shared ${LAMBDA_TASK_ROOT}/src/shared/
+
+CMD [ "src.select_img.handler.handler" ]
+
 # EditImgLambda
 FROM public.ecr.aws/lambda/python:3.13 AS edit-img
 
