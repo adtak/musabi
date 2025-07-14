@@ -343,6 +343,11 @@ pub-img = [
     { name = "requests" },
     { name = "types-requests" },
 ]
+select-img = [
+    { name = "google-genai" },
+    { name = "loguru" },
+    { name = "pydantic" },
+]
 
 [package.metadata]
 
@@ -378,6 +383,11 @@ pub-img = [
     { name = "pydantic", specifier = ">=2.11.3" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "types-requests", specifier = ">=2.32.4.20250611" },
+]
+select-img = [
+    { name = "google-genai", specifier = ">=1.21.1" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pydantic", specifier = ">=2.11.3" },
 ]
 
 [[package]]
