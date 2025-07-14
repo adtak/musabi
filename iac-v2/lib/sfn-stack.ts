@@ -275,7 +275,9 @@ const createStateMachine = (
   const selectImgStep = new sfn_tasks.LambdaInvoke(scope, "SelectImg", {
     lambdaFunction: selectImgFunction,
     payload: sfn.TaskInput.fromObject({
-      ImageKeys: sfn.JsonPath.listAt("$.ParallelGenImgResults[*].Payload.ImgKey"),
+      ImageKeys: sfn.JsonPath.listAt(
+        "$.ParallelGenImgResults[*].Payload.ImgKey",
+      ),
     }),
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
     resultPath: "$.SelectImgResults",
