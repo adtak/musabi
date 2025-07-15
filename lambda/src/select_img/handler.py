@@ -13,7 +13,7 @@ from src.shared.s3 import get_image
 from src.shared.type import SelectImgResponse
 
 
-class GeminiResponse(BaseModel):
+class SelectedImage(BaseModel):
     index: int = Field(ge=0, description="0-based index of selected image")
 
     def get_valid_index(self, image_cnt: int) -> int:
@@ -47,7 +47,7 @@ def decode_images(bucket_name: str, image_keys: list[str]) -> list[str]:
     return results
 
 
-def select_image(decoded_images: list[str]) -> GeminiResponse:
+def select_image(decoded_images: list[str]) -> SelectedImage:
     def get_image_message(image: str) -> dict[str, Any]:
         return {
             "type": "image_url",
@@ -76,7 +76,7 @@ Please respond with only the number (0, 1, 2, 3, etc.) of the best image.
         model="gemini-2.5-flash",
         temperature=0,
     )
-    chain = prompt | model.with_structured_output(GeminiResponse)
+    chain = prompt | model.with_structured_output(SelectedImage)
     return chain.invoke({})  # type: ignore[return-value]
 
 
