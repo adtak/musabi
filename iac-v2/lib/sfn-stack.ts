@@ -248,7 +248,6 @@ const createParallelGenImgStep = (
         ExecName: sfn.JsonPath.stringAt("$$.Execution.Name"),
         ParallelIndex: i,
       }),
-      resultPath: `$.GenImgResults-${i}`,
     });
     parallelGenImgStep.branch(genImgStep);
   }
