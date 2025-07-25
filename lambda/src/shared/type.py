@@ -16,3 +16,7 @@ class GenImgResponse(TypedDict):
 
 class SelectImgResponse(TypedDict):
     ImgKey: str
+
+
+class EditImgResponse(TypedDict):
+    TitleImgKey: str
