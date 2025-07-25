@@ -43,11 +43,11 @@ jobs:
             for func in "${func_array[@]}"; do
               func=$(echo "$func" | xargs)  # trim whitespace
               case "$func" in
-                "gen-text"|"gen-img"|"edit-img"|"pub-img")
+                "gen-text"|"gen-img"|"select-img"|"edit-img"|"pub-img")
                   echo "✅ Valid function: ${func}" ;;
                 *)
                   echo "❌ Invalid function name: ${func}"
-                  echo "Valid functions: gen-text, gen-img, edit-img, pub-img"
+                  echo "Valid functions: gen-text, gen-img, select-img, edit-img, pub-img"
                   exit 1 ;;
               esac
             done
@@ -57,7 +57,7 @@ jobs:
         id: functions
         run: |
           if [ "${{ inputs.functions }}" = "all" ]; then
-            echo "functions=gen-text,gen-img,edit-img,pub-img" >> $GITHUB_OUTPUT
+            echo "functions=gen-text,gen-img,select-img,edit-img,pub-img" >> $GITHUB_OUTPUT
           else
             echo "functions=${{ inputs.functions }}" >> $GITHUB_OUTPUT
           fi

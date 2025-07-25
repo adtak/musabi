@@ -14,6 +14,7 @@ const PARALLEL_COUNT = 4;
 type SfnStackProps = cdk.StackProps & {
   genTextRepository: ecr.Repository;
   genImgRepository: ecr.Repository;
+  selectImgRepository: ecr.Repository;
   editImgRepository: ecr.Repository;
   pubImgRepository: ecr.Repository;
 };
@@ -39,6 +40,11 @@ export class SfnStack extends cdk.Stack {
       props.genImgRepository,
       bucket,
     );
+    const selectImgFunction = createSelectImgFunction(
+      this,
+      props.selectImgRepository,
+      bucket,
+    );
     const editImgFunction = createEditImgFunction(
       this,
       props.editImgRepository,
@@ -53,6 +59,7 @@ export class SfnStack extends cdk.Stack {
       this,
       genTextFunction,
       genImgFunction,
+      selectImgFunction,
       editImgFunction,
       pubImgFunction,
       bucket.bucketName,
@@ -125,6 +132,43 @@ const createGenImgFunction = (
     }),
   );
   return genImgFunction;
+};
+
+const createSelectImgFunction = (
+  scope: Construct,
+  ecrRepo: ecr.Repository,
+  bucket: s3.Bucket,
+) => {
+  const selectImgFunction = new lambda.DockerImageFunction(
+    scope,
+    "SelectImgLambda",
+    {
+      functionName: "SelectImgFunction",
+      code: lambda.DockerImageCode.fromEcr(ecrRepo),
+      timeout: cdk.Duration.minutes(3),
+      memorySize: 256,
+      environment: {
+        IMAGE_BUCKET: bucket.bucketName,
+      },
+    },
+  );
+  selectImgFunction.addToRolePolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [bucket.arnForObjects("*")],
+    }),
+  );
+  selectImgFunction.addToRolePolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["ssm:GetParameter"],
+      resources: [
+        `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/google/gemini/musabi/*`,
+      ],
+    }),
+  );
+  return selectImgFunction;
 };
 
 const createEditImgFunction = (
@@ -205,7 +249,6 @@ const createParallelGenImgStep = (
         ExecName: sfn.JsonPath.stringAt("$$.Execution.Name"),
         ParallelIndex: i,
       }),
-      resultPath: `$.GenImgResults-${i}`,
     });
     parallelGenImgStep.branch(genImgStep);
   }
@@ -216,6 +259,7 @@ const createStateMachine = (
   scope: Construct,
   genTextFunction: lambda.IFunction,
   genImgFunction: lambda.IFunction,
+  selectImgFunction: lambda.IFunction,
   editImgFunction: lambda.IFunction,
   pubImgFunction: lambda.IFunction,
   bucketName: string,
@@ -228,10 +272,21 @@ const createStateMachine = (
 
   const parallelGenImgStep = createParallelGenImgStep(scope, genImgFunction);
 
+  const selectImgStep = new sfn_tasks.LambdaInvoke(scope, "SelectImg", {
+    lambdaFunction: selectImgFunction,
+    payload: sfn.TaskInput.fromObject({
+      ImageKeys: sfn.JsonPath.listAt(
+        "$.ParallelGenImgResults[*].Payload.ImgKey",
+      ),
+    }),
+    integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
+    resultPath: "$.SelectImgResults",
+  });
+
   const editImgStep = new sfn_tasks.LambdaInvoke(scope, "EditImg", {
     lambdaFunction: editImgFunction,
     payload: sfn.TaskInput.fromObject({
-      ImgKey: sfn.JsonPath.stringAt("$.GenImgResults-0.Payload.ImgKey"),
+      ImgKey: sfn.JsonPath.stringAt("$.SelectImgResults.Payload.ImgKey"),
       DishName: sfn.JsonPath.stringAt("$.GenTextResults.Payload.DishName"),
       BucketName: bucketName,
       ExecName: sfn.JsonPath.stringAt("$$.Execution.Name"),
@@ -254,7 +309,7 @@ const createStateMachine = (
       TitleImgKey: sfn.JsonPath.stringAt(
         "$.EditImgResults.Payload.TitleImgKey",
       ),
-      ImgKey: sfn.JsonPath.stringAt("$.GenImgResults-0.Payload.ImgKey"),
+      ImgKey: sfn.JsonPath.stringAt("$.SelectImgResults.Payload.ImgKey"),
       DryRun: sfn.JsonPath.stringAt("$.DryRun"),
     }),
     integrationPattern: sfn.IntegrationPattern.REQUEST_RESPONSE,
@@ -267,6 +322,7 @@ const createStateMachine = (
     definitionBody: sfn.DefinitionBody.fromChainable(
       genTextStep
         .next(parallelGenImgStep)
+        .next(selectImgStep)
         .next(editImgStep)
         .next(pubImgStep)
         .next(successState),

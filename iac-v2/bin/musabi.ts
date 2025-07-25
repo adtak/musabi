@@ -13,6 +13,7 @@ new SfnStack(app, "SfnStack", {
   env,
   genTextRepository: ecrStack.genTextRepository,
   genImgRepository: ecrStack.genImgRepository,
+  selectImgRepository: ecrStack.selectImgRepository,
   editImgRepository: ecrStack.editImgRepository,
   pubImgRepository: ecrStack.pubImgRepository,
 });

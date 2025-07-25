@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from src.shared.logging import log_exec
 from src.shared.s3 import get_image, put_image
+from src.shared.type import EditImgResponse
 
 
 class EditImgArgs(BaseModel):
@@ -87,12 +88,12 @@ def _calc_fontsize(
     return font_size
 
 
-def handler(event: dict[str, Any], context: object) -> dict[str, str]:  # noqa: ARG001
+def handler(event: dict[str, Any], context: object) -> EditImgResponse:  # noqa: ARG001
     return main(EditImgArgs.from_event(event))
 
 
 @log_exec
-def main(args: EditImgArgs) -> dict[str, str]:
+def main(args: EditImgArgs) -> EditImgResponse:
     image = get_image(args.bucket_name, args.image_key).convert("RGBA")
     w, h = image.size
     logger.info(f"Image size: width {w} - height {h}")
@@ -107,10 +108,8 @@ def main(args: EditImgArgs) -> dict[str, str]:
         args.bucket_name,
         f"{args.exec_name}/0.png",
     )
-    image_key = put_image(image, args.bucket_name, f"{args.exec_name}/1.png")
     return {
         "TitleImgKey": title_image_key,
-        "ImgKey": image_key,
     }
 
 

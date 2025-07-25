@@ -19,6 +19,7 @@ class GenImgArgs(BaseModel):
     dish_name: str
     ingredients: str
     exec_name: str
+    parallel_index: int
 
     @classmethod
     def from_event(cls, event: dict[str, Any]) -> Self:
@@ -28,6 +29,7 @@ class GenImgArgs(BaseModel):
                 "dish_name": event.get("DishName"),
                 "ingredients": event.get("Ingredients"),
                 "exec_name": event.get("ExecName"),
+                "parallel_index": event.get("ParallelIndex"),
             },
         )
 
@@ -75,11 +77,23 @@ def main(
         "ただし、生成する画像に材料に関する説明文は入れないでください。"
     )
     image = generate_dish_img(client, contents)
-    img_key = put_image(image, args.bucket_name, f"{args.exec_name}/1.png")
+    img_key = put_image(
+        image,
+        args.bucket_name,
+        f"{args.exec_name}/1-{args.parallel_index}.png",
+    )
     return {
         "ImgKey": img_key,
     }
 
 
 if __name__ == "__main__":
-    main(GenImgArgs(bucket_name="", dish_name="", ingredients="", exec_name=""))
+    main(
+        GenImgArgs(
+            bucket_name="",
+            dish_name="",
+            ingredients="",
+            exec_name="",
+            parallel_index=0,
+        ),
+    )
