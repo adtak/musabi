@@ -1,13 +1,13 @@
 import * as cdk from "aws-cdk-lib";
-import type { Construct } from "constructs";
-import * as s3 from "aws-cdk-lib/aws-s3";
-import * as lambda from "aws-cdk-lib/aws-lambda";
+import type * as ecr from "aws-cdk-lib/aws-ecr";
 import * as events from "aws-cdk-lib/aws-events";
 import * as events_targets from "aws-cdk-lib/aws-events-targets";
-import type * as ecr from "aws-cdk-lib/aws-ecr";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as sfn_tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
+import type { Construct } from "constructs";
 
 const PARALLEL_COUNT = 4;
 

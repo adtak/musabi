@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
-import { SfnStack } from "../lib/sfn-stack";
 import { EcrStack } from "../lib/ecr-stack";
+import { SfnStack } from "../lib/sfn-stack";
 
 const env = {
   account: process.env.CDK_DEFAULT_ACCOUNT,

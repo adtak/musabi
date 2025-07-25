@@ -1,6 +1,6 @@
 import * as cdk from "aws-cdk-lib";
-import type { Construct } from "constructs";
 import * as ecr from "aws-cdk-lib/aws-ecr";
+import type { Construct } from "constructs";
 
 export class EcrStack extends cdk.Stack {
   genTextRepository: ecr.Repository;
