@@ -88,4 +88,12 @@ def main(
 
 
 if __name__ == "__main__":
-    main(GenImgArgs(bucket_name="", dish_name="", ingredients="", exec_name=""))
+    main(
+        GenImgArgs(
+            bucket_name="",
+            dish_name="",
+            ingredients="",
+            exec_name="",
+            parallel_index=0,
+        ),
+    )
