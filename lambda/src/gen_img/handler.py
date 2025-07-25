@@ -78,7 +78,9 @@ def main(
     )
     image = generate_dish_img(client, contents)
     img_key = put_image(
-        image, args.bucket_name, f"{args.exec_name}/{args.parallel_index}.png",
+        image,
+        args.bucket_name,
+        f"{args.exec_name}/1-{args.parallel_index}.png",
     )
     return {
         "ImgKey": img_key,
