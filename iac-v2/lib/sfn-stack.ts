@@ -146,6 +146,7 @@ const createSelectImgFunction = (
       functionName: "SelectImgFunction",
       code: lambda.DockerImageCode.fromEcr(ecrRepo),
       timeout: cdk.Duration.minutes(3),
+      memorySize: 256,
       environment: {
         IMAGE_BUCKET: bucket.bucketName,
       },
