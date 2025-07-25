@@ -436,6 +436,7 @@ pub-img = [
 select-img = [
     { name = "langchain-google-genai" },
     { name = "loguru" },
+    { name = "pillow" },
     { name = "pydantic" },
 ]
 
@@ -477,6 +478,7 @@ pub-img = [
 select-img = [
     { name = "langchain-google-genai", specifier = ">=2.1.6" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pillow", specifier = ">=11.2.1" },
     { name = "pydantic", specifier = ">=2.11.3" },
 ]
 
