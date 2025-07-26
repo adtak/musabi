@@ -28,7 +28,20 @@ class Dish(BaseModel):
 def get_generate_params() -> tuple[str, str, str]:
     genres = random.choice(["和食", "洋食", "中華料理", "エスニック"])  # noqa: S311
     main_food = random.choice(  # noqa: S311
-        ["牛肉", "豚肉", "鶏肉", "魚介類", "野菜", "豆腐"],
+        [
+            "牛肉",
+            "豚肉",
+            "鶏肉",
+            "魚",
+            "貝類・エビ・カニ",
+            "葉物野菜",
+            "根菜",
+            "きのこ",
+            "乳製品",
+            "卵",
+            "豆腐・豆製品",
+            "米・麺類",
+        ],
     )
     theme = random.choice(["ヘルシー", "時短", "オシャレ", "ガッツリ"])  # noqa: S311
     return (genres, main_food, theme)
