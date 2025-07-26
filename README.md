@@ -1,5 +1,8 @@
 # Musabi
 
+[![Lambda CI](https://github.com/adtak/musabi/actions/workflows/lambda-ci.yml/badge.svg?branch=main)](https://github.com/adtak/musabi/actions/workflows/lambda-ci.yml)
+[![Deploy to AWS](https://github.com/adtak/musabi/actions/workflows/lambda-cd.yml/badge.svg)](https://github.com/adtak/musabi/actions/workflows/lambda-cd.yml)
+
 Musabi は、AI を使ってレシピの生成・画像生成・画像編集・SNS 投稿を自動化するシステムです。AWS Step Functions を使用してワークフローを構築し、Lambda 関数と Container で各ステップを実行します。
 
 ## 📁 プロジェクト構成
@@ -20,7 +23,7 @@ Musabi は、AI を使ってレシピの生成・画像生成・画像編集・S
   - 12 時間ごとのスケジュール実行設定
   - セキュリティとアクセス管理
 
-- **`ml-v2/`** - Stable Diffusion を使用した画像生成
+- **`ml-v2/`** - (未使用) Stable Diffusion を使用した画像生成
 
   - SageMaker 処理ジョブ用のコンテナ
   - カスタム画像生成とスタイル適用
@@ -37,30 +40,38 @@ Step Functions で以下の順序で自動実行されます：
 
 1. **GenText** - LLM でレシピを生成
 2. **GenImg** - LLM で料理画像を生成
-3. **EditImg** - 画像にタイトルとスタイリングを追加
-4. **PubImg** - 完成したコンテンツを SNS に投稿
+3. **SelectImg** - Google Gemini で生成された画像を評価・選択
+4. **EditImg** - 画像にタイトルとスタイリングを追加
+5. **PubImg** - 完成したコンテンツを SNS に投稿
 
 ## 🛠️ 技術スタック
 
 ### バックエンド
 
-- **Language**: Python 3.13, TypeScript
-- **Dependency Management**: uv (Python)
-- **APIs**: OpenAI, Google Gemini
-- **Cloud**: AWS (Lambda)
+- **Lambda Functions**: Python 3.13 + uv
+- **Infrastructure**: TypeScript + AWS CDK v2
 
-### インフラ
+### API & Services
 
-- **Infrastructure as Code**: AWS CDK v2
-- **Container**: Docker, Amazon ECR
+- **Text Generation**: LangChain + OpenAI API
+- **Image Generation**: Google Gemini API
+- **Image Processing**: Pillow, OpenCV
+- **Audio/Video**: MoviePy, librosa, yt-dlp
+
+### AWS Infrastructure
+
 - **Orchestration**: AWS Step Functions
+- **Compute**: AWS Lambda (Container Images)
 - **Storage**: Amazon S3
+- **Container Registry**: Amazon ECR
 - **Scheduling**: Amazon EventBridge
+- **Configuration**: AWS SSM Parameter Store
 
-### 機械学習
+### Development Tools
 
-- **Frameworks**: PyTorch, Diffusers
-- **Models**: Stable Diffusion
+- **Python**: black, ruff, mypy, pytest
+- **TypeScript**: Biome (lint/format), Jest
+- **Container**: Docker
 
 ## 🚀 GitHub Actions CD Setup
 
