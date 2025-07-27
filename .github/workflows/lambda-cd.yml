@@ -102,6 +102,8 @@ jobs:
                 lambda_name="GenTextFunction" ;;
               "gen-img")
                 lambda_name="GenImgFunction" ;;
+              "select-img")
+                lambda_name="SelectImgFunction" ;;
               "edit-img")
                 lambda_name="EditImgFunction" ;;
               "pub-img")
