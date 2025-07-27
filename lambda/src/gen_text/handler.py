@@ -54,14 +54,6 @@ def get_message(genres: str, main_food: str, theme: str) -> str:
 """
 
 
-def get_cp2077_message() -> str:
-    return """
-今は2077年で、ゲーム「Cyberpunk2077」のような世界です。
-そこであなたは一流のシェフであり、世界中のあらゆる料理について熟知しています。
-その世界で食べられているであろう料理を想像し、サイバーパンクな料理を一つ提案してください。
-"""
-
-
 def generate_dish(message: str) -> Dish:
     prompt = ChatPromptTemplate.from_messages(
         [
