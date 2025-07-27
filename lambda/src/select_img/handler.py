@@ -56,13 +56,19 @@ def select_image(decoded_images: list[str]) -> SelectedImage:
 
     prompt_text = """
 You are tasked with selecting the best food image from the provided options.
-Please analyze each image and select the one that best meets these criteria:
-1. Visual appeal and presentation quality
-2. Clarity and sharpness of the image
-3. Proper lighting and color balance
-4. Appetizing appearance that would make viewers want to try the food
-5. Overall composition and aesthetic quality
-
+Please analyze each image based on the following detailed criteria:
+1. Top-down angle: The photo should be taken from a bird's-eye view,
+ clearly showing the entire dish, the plate, and some of the surrounding space.
+2. Atmosphere: The image should evoke a refined and sophisticated mood,
+ like that of a high-end restaurant.
+3. Professional lighting: The lighting should be beautifully executed, with soft,
+ balanced illumination that enhances the food's texture and color.
+4. Composition: The layout should consider not only the food
+ but also the table setting and background elements in a thoughtful, aesthetic way.
+5. Commercial quality: The image should be suitable for use in commercial contexts,
+ such as advertising or menus.
+6. No text: The image should not contain any text or ingredient descriptions.
+Evaluate all images and select the one that best matches all of the above criteria.
 Please respond with only the number (0, 1, 2, 3, etc.) of the best image.
 """
     messages: list[dict[str, Any]] = [{"type": "text", "text": prompt_text}]
