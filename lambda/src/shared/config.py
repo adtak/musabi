@@ -31,7 +31,7 @@ class OpenAIConfig:
             self._api_key = get_ssm_parameter("/openai/musabi/api-key")
         return self._api_key
 
-    def setup_env(self) -> str:
+    def setup_env(self) -> None:
         os.environ["OPENAI_API_KEY"] = self.api_key
 
 
