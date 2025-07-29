@@ -96,6 +96,7 @@ const createGenTextFunction = (scope: Construct, ecrRepo: ecr.Repository) => {
       actions: ["ssm:GetParameter"],
       resources: [
         `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/openai/musabi/*`,
+        `arn:aws:ssm:ap-northeast-1:${cdk.Aws.ACCOUNT_ID}:parameter/langsmith/musabi/*`,
       ],
     }),
   );
