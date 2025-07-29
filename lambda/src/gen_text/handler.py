@@ -1,4 +1,3 @@
-import os
 import random
 from typing import Any
 
@@ -6,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
-from src.shared.config import OpenAIConfig
+from src.shared.config import LangSmithConfig, OpenAIConfig
 from src.shared.logging import log_exec
 from src.shared.type import GenTextResponse
 
@@ -77,8 +76,8 @@ def handler(event: dict[str, Any], context: object) -> GenTextResponse:  # noqa:
 
 @log_exec
 def main() -> GenTextResponse:
-    config = OpenAIConfig()
-    os.environ["OPENAI_API_KEY"] = config.api_key
+    OpenAIConfig().setup_env()
+    LangSmithConfig().setup_env()
     genres, main_food, theme = get_generate_params()
     recipe = generate_dish(get_message(genres, main_food, theme))
     return {

@@ -1,3 +1,4 @@
+import os
 from typing import Any, cast
 
 import boto3
@@ -29,6 +30,9 @@ class OpenAIConfig:
         if self._api_key is None:
             self._api_key = get_ssm_parameter("/openai/musabi/api-key")
         return self._api_key
+
+    def setup_env(self) -> str:
+        os.environ["OPENAI_API_KEY"] = self.api_key
 
 
 class MetaConfig:
@@ -65,3 +69,19 @@ class MetaConfig:
     @property
     def endpoint_base(self) -> str:
         return f"{self.graph_url}/{self.version}/"
+
+
+class LangSmithConfig:
+    def __init__(self) -> None:
+        self._api_key: str | None = None
+
+    @property
+    def api_key(self) -> str:
+        if self._api_key is None:
+            self._api_key = get_ssm_parameter("/langsmith/musabi/api-key")
+        return self._api_key
+
+    def setup_env(self) -> None:
+        os.environ["LANGSMITH_TRACING"] = "true"
+        os.environ["LANGSMITH_API_KEY"] = self.api_key
+        os.environ["LANGSMITH_PROJECT"] = "musabi"
