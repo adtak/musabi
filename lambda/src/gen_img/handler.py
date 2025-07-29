@@ -2,12 +2,12 @@ import os
 from io import BytesIO
 from typing import Any, Self
 
-from google import genai
 from google.genai import types
 from loguru import logger
 from PIL import Image
 from pydantic import BaseModel
 
+from src.shared.client import TracedGeminiClient
 from src.shared.config import GeminiConfig
 from src.shared.logging import log_exec
 from src.shared.s3 import put_image
@@ -34,8 +34,8 @@ class GenImgArgs(BaseModel):
         )
 
 
-def generate_dish_img(client: genai.Client, contents: str) -> Image.Image:
-    response = client.models.generate_content(
+def generate_dish_img(client: TracedGeminiClient, contents: str) -> Image.Image:
+    response = client.generate_content(
         model="gemini-2.0-flash-preview-image-generation",
         contents=contents,
         config=types.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"]),
@@ -69,7 +69,7 @@ def main(
     args: GenImgArgs,
 ) -> GenImgResponse:
     config = GeminiConfig()
-    client = genai.Client(api_key=config.api_key)
+    client = TracedGeminiClient(config.api_key)
     contents = (
         f"{args.dish_name}という料理の写真を生成してください。\n"
         "写真はおしゃれでモダンな雰囲気でお願いします。\n"

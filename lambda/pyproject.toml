@@ -16,6 +16,7 @@ edit-img = [
 gen-img = [
     "boto3>=1.37.37",
     "google-genai>=1.21.1",
+    "langsmith>=0.4.1",
     "loguru>=0.7.3",
     "pillow>=11.2.1",
     "pydantic>=2.11.3",
