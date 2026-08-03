@@ -13,6 +13,7 @@ dependencies = [
     "pillow>=12.1.0",
     "pydub>=0.25.1",
     "python-dotenv>=1.0.1",
+    "tqdm>=4.67.3",
     "yt-dlp>=2025.11.12",
     "yt-dlp-getpot-jsi>=0.3.1",
 ]
