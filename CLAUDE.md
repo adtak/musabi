@@ -66,7 +66,6 @@ Step Functions orchestrates Lambda functions. Deployed to ap-northeast-1, trigge
 - Add `--trailer "Reported-by:<name>"` for bug fixes from user reports
 - Add `--trailer "Github-Issue:#<number>"` for issue-related commits
 - NEVER mention co-authored-by or the tool used to create commits/PRs
-- PR reviewers: always add `jerome3o-anthropic` and `jspahrsummers`
 - PR descriptions: focus on the problem being solved and the approach, not code-level details
 
 ## CI/CD
