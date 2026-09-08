@@ -2,16 +2,20 @@ import pytest
 
 from musabi_util.video_dl import (
     DownloadProgress,
+    Entry,
     VideoDlError,
     duration_matches,
-    parse_ids,
+    parse_entries,
     pick_best,
 )
 
 
-class TestParseIds:
+class TestParseEntries:
     def test_plain_lines(self):
-        assert parse_ids("123-abc\n456-def\n") == ["123-abc", "456-def"]
+        assert parse_entries("123-abc\n456-def\n") == [
+            Entry("123-abc"),
+            Entry("456-def"),
+        ]
 
     def test_strips_comments_and_blanks(self):
         text = "\n".join(
@@ -24,14 +28,31 @@ class TestParseIds:
                 "789-ghi",
             ]
         )
-        assert parse_ids(text) == ["123-abc", "456-def", "789-ghi"]
+        assert parse_entries(text) == [
+            Entry("123-abc"),
+            Entry("456-def"),
+            Entry("789-ghi"),
+        ]
 
     def test_dedupes_preserving_order(self):
-        assert parse_ids("a\nb\na\n") == ["a", "b"]
+        assert parse_entries("a\nb\na\n") == [Entry("a"), Entry("b")]
 
     def test_empty(self):
-        assert parse_ids("") == []
-        assert parse_ids("# 全部コメント\n\n") == []
+        assert parse_entries("") == []
+        assert parse_entries("# 全部コメント\n\n") == []
+
+    def test_reads_filename_column(self):
+        entries = parse_entries("123-abc\t20260728_タイトル テキスト.mp4\n")
+        assert entries == [Entry("123-abc", "20260728_タイトル テキスト.mp4")]
+
+    def test_filename_may_contain_spaces(self):
+        # 空白で分割していたらタイトルが切れる。タブでのみ分割していること。
+        entries = parse_entries("123-abc\t20260728_a b c.mp4\n")
+        assert entries[0].filename == "20260728_a b c.mp4"
+
+    def test_stem_falls_back_to_id(self):
+        assert Entry("123-abc").stem == "123-abc"
+        assert Entry("123-abc", "20260728_タイトル.mp4").stem == "20260728_タイトル"
 
 
 class TestPickBest:
