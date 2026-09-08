@@ -3,9 +3,12 @@
 認証は API 層だけに掛かっており、m3u8 を配信する CDN 側は素通しになっている。
 そのため API から m3u8 の URL さえ取れれば、ダウンロード自体は追加のヘッダ無しで動く。
 
-一時名 `<id>.tmp.<ext>` で落とし、尺の検証を通ったものだけを `<id>.<ext>` へ
-リネームする。これにより「最終ファイルが存在する = 検証済みで完成している」が
-常に成り立ち、中断した半端なファイルを完成扱いする事故が起きない。
+入力は 1 行 1 件で、`<id>` だけの行と `<id><TAB><ファイル名>` の行の両方を受ける。
+後者は parse_posts が出す形式で、保存名をそちらに合わせる。
+
+一時名 `<id>.tmp.<ext>` で落とし、尺の検証を通ったものだけを最終名へリネームする。
+これにより「最終ファイルが存在する = 検証済みで完成している」が常に成り立ち、
+中断した半端なファイルを完成扱いする事故が起きない。
 """
 
 import json
@@ -69,6 +72,19 @@ class ApiConfig:
 
 
 @dataclass(frozen=True)
+class Entry:
+    """処理対象 1 件。filename が無ければ `<id>.<ext>` で保存する。"""
+
+    post_id: str
+    filename: str | None = None
+
+    @property
+    def stem(self) -> str:
+        """最終ファイル名のステム。拡張子は実際に落ちたものに合わせる。"""
+        return Path(self.filename).stem if self.filename else self.post_id
+
+
+@dataclass(frozen=True)
 class Video:
     """API が返す動画候補のうち 1 本分。"""
 
@@ -79,21 +95,29 @@ class Video:
     resolution: str
 
 
-def parse_ids(text: str) -> list[str]:
-    """1 行 1 ID のテキストから ID を取り出す。
+def parse_entries(text: str) -> list[Entry]:
+    """1 行 1 件のテキストを Entry に変換する。
 
-    `#` 以降はコメントとして落とし、空行と重複は無視する。落とし終えた ID を
-    コメントアウトしてメモを残す運用を想定している。
+    `<id>` だけの行と `<id><TAB><ファイル名>` の行の両方を受ける。分割をタブに
+    限るのは、ファイル名にタイトル由来の空白が入るため。
+
+    `#` 以降はコメントとして落とし、空行と id の重複は無視する。落とし終えた
+    行をコメントアウトしてメモを残す運用を想定している。
     """
-    ids: list[str] = []
+    entries: list[Entry] = []
     seen: set[str] = set()
     for line in text.splitlines():
         body = line.split("#", 1)[0].strip()
-        if not body or body in seen:
+        if not body:
             continue
-        seen.add(body)
-        ids.append(body)
-    return ids
+        post_id, _, filename = body.partition("\t")
+        post_id = post_id.strip()
+        filename = filename.strip()
+        if not post_id or post_id in seen:
+            continue
+        seen.add(post_id)
+        entries.append(Entry(post_id, filename or None))
+    return entries
 
 
 def pick_best(payload: dict) -> Video:
@@ -180,12 +204,19 @@ def fetch_meta(cfg: ApiConfig, post_id: str) -> dict:
     return payload
 
 
-def existing_output(output: Path, post_id: str) -> Path | None:
-    """検証済みの最終ファイルが既にあれば返す（一時ファイルは無視する）。"""
-    for path in sorted(output.glob(f"{post_id}.*")):
-        if ".tmp." in path.name or path.suffix == ".part":
+def existing_output(output: Path, entry: Entry) -> Path | None:
+    """検証済みの最終ファイルが既にあれば返す（一時ファイルは無視する）。
+
+    ステムの一致で探す。glob を使わないのは、タイトル由来のファイル名に
+    `[` などのワイルドカード文字が入りうるため。
+    """
+    if not output.is_dir():
+        return None
+    for path in sorted(output.iterdir()):
+        if path.is_dir() or ".tmp." in path.name or path.suffix == ".part":
             continue
-        return path
+        if path.stem == entry.stem:
+            return path
     return None
 
 
@@ -319,26 +350,27 @@ def _add_log_sink(output: Path) -> None:
 
 def run(
     cfg: ApiConfig,
-    ids: list[str],
+    entries: list[Entry],
     output: Path,
     interval: float = DEFAULT_INTERVAL_S,
     tolerance: float = DEFAULT_TOLERANCE_S,
 ) -> list[str]:
-    """ID を順に処理し、失敗した ID の一覧を返す。
+    """各件を順に処理し、失敗した ID の一覧を返す。
 
     1 件失敗しても止めずに次へ進むが、認証エラーだけは以降も全て失敗するので
     その場で打ち切る。
     """
     _add_log_sink(output)
-    logger.info(f"対象 {len(ids)} 件 -> {output}")
+    logger.info(f"対象 {len(entries)} 件 -> {output}")
 
     saved = 0
     skipped = 0
     failed: list[str] = []
     called = False
 
-    for post_id in ids:
-        found = existing_output(output, post_id)
+    for entry in entries:
+        post_id = entry.post_id
+        found = existing_output(output, entry)
         if found:
             logger.info(f"[SKIP] {post_id} 既に {found.name} があります")
             skipped += 1
@@ -372,7 +404,9 @@ def run(
                 failed.append(post_id)
                 continue
 
-            final = output / f"{post_id}{tmp.suffix}"
+            # 拡張子は ids.txt の申告ではなく実際に落ちたものに合わせ、
+            # 中身と食い違う名前を付けない。
+            final = output / f"{entry.stem}{tmp.suffix}"
             tmp.rename(final)
             logger.info(f"[SAVE] {final} ({final.stat().st_size:,}B)")
             saved += 1
@@ -410,12 +444,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ids",
         required=True,
-        help="post ID を 1 行 1 件で並べたファイル（# 以降はコメント）",
+        help=(
+            "post ID を 1 行 1 件で並べたファイル（# 以降はコメント）。"
+            "<id><TAB><ファイル名> の形なら、その名前で保存する"
+        ),
     )
     parser.add_argument(
         "--output",
         default=str(default_out),
-        help="保存先ディレクトリ（既に <id>.* がある ID はスキップ）",
+        help="保存先ディレクトリ（同名のファイルが既にある件はスキップ）",
     )
     parser.add_argument(
         "--interval",
@@ -433,13 +470,13 @@ if __name__ == "__main__":
 
     try:
         config = ApiConfig.from_env()
-        id_list = parse_ids(Path(args.ids).read_text(encoding="utf-8"))
-        if not id_list:
+        entry_list = parse_entries(Path(args.ids).read_text(encoding="utf-8"))
+        if not entry_list:
             logger.error(f"{args.ids} に処理対象の ID がありません")
             raise SystemExit(1)
         failures = run(
             config,
-            id_list,
+            entry_list,
             Path(args.output),
             interval=args.interval,
             tolerance=args.tolerance,

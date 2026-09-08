@@ -131,3 +131,4 @@ dmypy.json
 .DS_store
 *.settings.json
 ids.txt
+sample.html
